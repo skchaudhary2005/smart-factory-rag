@@ -341,7 +341,7 @@ async def industrial_maintenance_assessment(request: MaintenanceAssessmentReques
         evidence = []
         if _rag_engine is not None:
             try:
-                rag = _rag_engine.query(request.question, top_k=3, rerank=False)
+                rag = await asyncio.wait_for(asyncio.to_thread(_rag_engine.query, request.question, top_k=3, rerank=False), timeout=5.0)
                 evidence = [{'document': x.document, 'page': x.page, 'paragraph': x.paragraph, 'score': x.score, 'chunk_text': x.chunk_text} for x in rag.sources[:3]]
             except Exception as exc:
                 logger.warning('Maintenance RAG evidence unavailable: %s', exc)
