@@ -22,6 +22,49 @@ export default function App(){
  };
  useEffect(()=>{load();const t=setInterval(load,5000);return()=>clearInterval(t)},[]);
  const machine=machines[0],latest=history[history.length-1];
+ const [assessment,setAssessment]=useState<any>(null);
+ const [assessing,setAssessing]=useState(false);
+
+ const runAssessment=async()=>{
+  try{
+   setAssessing(true);
+   setError("");
+
+   const payload={
+    machine_type:latest?.machine_type||"L",
+    air_temperature:latest?.air_temperature??298.3,
+    process_temperature:latest?.process_temperature??307.2,
+    rotational_speed:latest?.rotational_speed??1440,
+    torque:latest?.torque??39.5,
+    tool_wear:latest?.tool_wear??10,
+    op_setting_1:0,
+    op_setting_2:0,
+    op_setting_3:0,
+    sensors:Array(21).fill(0),
+    question:"What maintenance action is recommended for the current machine condition?"
+   };
+
+   const response=await fetch(
+    `${API}/industrial/maintenance-assessment`,
+    {
+     method:"POST",
+     headers:{"Content-Type":"application/json"},
+     body:JSON.stringify(payload)
+    }
+   );
+
+   if(!response.ok){
+    throw Error("Maintenance assessment failed");
+   }
+
+   setAssessment(await response.json());
+  }catch(e){
+   setError(e instanceof Error?e.message:"Maintenance assessment failed");
+  }finally{
+   setAssessing(false);
+  }
+ };
+
  return <div className="app">
   <header><div><div className="eyebrow">INDUSTRIAL AI PLATFORM</div><h1>Smart Factory Monitor</h1><p>Predictive maintenance & real-time machine intelligence</p></div><button onClick={load}><RefreshCw size={16}/> Refresh</button></header>
   {error&&<div className="error">{error}</div>}
@@ -38,6 +81,89 @@ export default function App(){
    </div>
    <div className="panel chart"><div className="head"><div><small>LIVE TELEMETRY</small><h2>Failure Probability</h2></div><span className="live">● LIVE</span></div><ResponsiveContainer width="100%" height={280}><LineChart data={history}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="time" tickFormatter={v=>new Date(v).toLocaleTimeString()}/><YAxis tickFormatter={v=>`${(v*100).toFixed(0)}%`}/><Tooltip/><Line type="monotone" dataKey="failure_probability" strokeWidth={3} dot={false}/></LineChart></ResponsiveContainer></div>
   </section>
+
+  <section className="panel" style={{marginTop:24}}>
+   <div className="head">
+    <div>
+     <small>AI MAINTENANCE COPILOT</small>
+     <h2>Maintenance Assessment</h2>
+    </div>
+
+    <button onClick={runAssessment} disabled={assessing}>
+     {assessing?"Assessing...":"Run Assessment"}
+    </button>
+   </div>
+
+   {!assessment && (
+    <div className="status">
+     <small>READY</small>
+     <b>Run an AI assessment using the latest machine telemetry.</b>
+    </div>
+   )}
+
+   {assessment && (
+    <>
+     <div className="machine">
+      <div>
+       <small>OVERALL RISK</small>
+       <b>{assessment.overall_risk}</b>
+      </div>
+
+      <div>
+       <small>FAILURE ASSESSMENT</small>
+       <b>
+        {assessment.failure_assessment?.prediction}
+        {" · "}
+        {Number(
+         assessment.failure_assessment?.failure_probability_percent||0
+        ).toFixed(2)}%
+       </b>
+      </div>
+
+      <div>
+       <small>RUL ASSESSMENT</small>
+       <b>
+        {assessment.rul_assessment?.available
+         ?"Available"
+         :"Unavailable for live telemetry"}
+       </b>
+      </div>
+     </div>
+
+     <div className="status">
+      <small>MAINTENANCE ACTION</small>
+      <b>{assessment.maintenance_action}</b>
+     </div>
+
+     <div className="status">
+      <small>RISK EXPLANATION</small>
+      <b>{assessment.risk_explanation}</b>
+     </div>
+
+     {assessment.rul_assessment?.reason && (
+      <div className="status">
+       <small>RUL NOTE</small>
+       <b>{assessment.rul_assessment.reason}</b>
+      </div>
+     )}
+
+     {assessment.evidence?.length > 0 && (
+      <div className="status">
+       <small>RAG EVIDENCE</small>
+
+       {assessment.evidence.map((e:any,i:number)=>(
+        <div key={i} style={{marginTop:8}}>
+         <b>Page {e.page}</b>
+         {" — "}
+         {e.chunk_text}
+        </div>
+       ))}
+      </div>
+     )}
+    </>
+   )}
+  </section>
+
   <section className="grid lower">
    <div className="panel"><small>RISK DISTRIBUTION</small><h2>Factory Health</h2><Row name="Low risk" value={summary?.low_risk_readings??0} cls="low"/><Row name="Medium risk" value={summary?.medium_risk_readings??0} cls="medium"/><Row name="High risk" value={summary?.high_risk_readings??0} cls="high"/></div>
    <div className="panel"><small>PREDICTIVE MAINTENANCE</small><h2>AI Model Status</h2><Status name="Failure Model" value="RandomForest · rf-industrial-v1"/><Status name="RUL Model" value="RandomForest · rf-rul-v1"/><Status name="RAG Engine" value="FAISS + BM25 · Ready"/><Status name="Sensor Pipeline" value="MQTT → TimescaleDB · Live"/></div>
