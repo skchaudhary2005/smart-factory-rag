@@ -19,8 +19,46 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Coroutine, Optional
 
 import numpy as np
+import os
+import psycopg
 
 logger = logging.getLogger(__name__)
+
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://factory:factory@postgres:5432/smartfactory")
+
+
+def save_sensor_reading(data: dict, equipment_id: str, timestamp: float, prediction: dict | None) -> None:
+    """Persist one MQTT telemetry reading and its ML prediction."""
+    with psycopg.connect(DATABASE_URL) as conn:
+        conn.execute(
+            """
+            INSERT INTO sensor_readings (
+                time, machine_id, machine_type,
+                air_temperature, process_temperature,
+                rotational_speed, torque, tool_wear,
+                failure_probability, prediction, risk_level, model_version
+            ) VALUES (
+                to_timestamp(%s), %s, %s,
+                %s, %s, %s, %s, %s,
+                %s, %s, %s, %s
+            )
+            """,
+            (
+                timestamp,
+                equipment_id,
+                data.get("machine_type"),
+                float(data.get("air_temperature", 0.0)),
+                float(data.get("process_temperature", 0.0)),
+                float(data.get("rotational_speed", 0.0)),
+                float(data.get("torque", 0.0)),
+                float(data.get("tool_wear", 0.0)),
+                prediction.get("failure_probability") if prediction else None,
+                prediction.get("prediction") if prediction else None,
+                prediction.get("risk_level") if prediction else None,
+                prediction.get("model_version") if prediction else None,
+            ),
+        )
+
 
 
 @dataclass
@@ -267,6 +305,32 @@ class SensorIngester:
             buffer = self._get_buffer(equipment_id)
             buffer.push(values, timestamp)
             self._stats["messages_received"] += 1
+            # Industrial ML prediction
+            try:
+                from src.industrial_ai.predict import predict_failure
+                required = ["machine_type", "air_temperature", "process_temperature", "rotational_speed", "torque", "tool_wear"]
+                if all(key in data for key in required):
+                    prediction = predict_failure(
+                        machine_type=data["machine_type"],
+                        air_temperature=float(data["air_temperature"]),
+                        process_temperature=float(data["process_temperature"]),
+                        rotational_speed=float(data["rotational_speed"]),
+                        torque=float(data["torque"]),
+                        tool_wear=float(data["tool_wear"]),
+                    )
+                    self._stats["last_prediction"] = prediction
+                    self._stats["last_prediction_equipment"] = equipment_id
+                    logger.info(f"Industrial prediction for {equipment_id}: {prediction}")
+            except Exception as prediction_error:
+                logger.error(f"Industrial prediction failed for {equipment_id}: {prediction_error}")
+
+
+
+            # Persist telemetry and ML prediction
+            try:
+                save_sensor_reading(data, equipment_id, timestamp, self._stats.get("last_prediction") if self._stats.get("last_prediction_equipment") == equipment_id else None)
+            except Exception as db_error:
+                logger.error(f"TimescaleDB persistence failed for {equipment_id}: {db_error}")
 
             # Check for anomalies
             anomalies = self.detector.check(

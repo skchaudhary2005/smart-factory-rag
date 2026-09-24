@@ -93,9 +93,9 @@ class FeatureEngineer:
             features[f"{name}_diff_max"] = np.max(np.abs(diff))
 
         # Cross-sensor features
-        features["temp_pressure_corr"] = np.corrcoef(
-            sensor_window[:, 0], sensor_window[:, 1]
-        )[0, 1]
+        temp = sensor_window[:, 0]
+        pressure = sensor_window[:, 1]
+        features["temp_pressure_corr"] = 0.0 if np.std(temp) == 0 or np.std(pressure) == 0 else float(np.corrcoef(temp, pressure)[0, 1])
         features["vibration_rpm_ratio"] = (
             np.mean(sensor_window[:, 2]) / (np.mean(sensor_window[:, 3]) + 1e-8)
         )

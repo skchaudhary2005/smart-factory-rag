@@ -253,7 +253,7 @@ class Indexer:
     def __init__(
         self,
         model_name: str = "BAAI/bge-m3",
-        device: str = "auto",
+        device: str = "cpu",
     ):
         self.model_name = model_name
         self.device = device

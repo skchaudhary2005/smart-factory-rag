@@ -61,3 +61,7 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rag", "src/ml", "src/sensors", "src/api"]

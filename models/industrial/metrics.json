@@ -1,0 +1,53 @@
+{
+  "dataset": "UCI AI4I 2020 Predictive Maintenance Dataset",
+  "rows": 10000,
+  "train_rows": 8000,
+  "test_rows": 2000,
+  "features": [
+    "Type",
+    "Air temperature [K]",
+    "Process temperature [K]",
+    "Rotational speed [rpm]",
+    "Torque [Nm]",
+    "Tool wear [min]"
+  ],
+  "roc_auc": 0.9698270612592863,
+  "average_precision": 0.7420363036102289,
+  "classification_report": {
+    "0": {
+      "precision": 0.9921383647798742,
+      "recall": 0.9798136645962733,
+      "f1-score": 0.9859375,
+      "support": 1932.0
+    },
+    "1": {
+      "precision": 0.5760869565217391,
+      "recall": 0.7794117647058824,
+      "f1-score": 0.6625,
+      "support": 68.0
+    },
+    "accuracy": 0.973,
+    "macro avg": {
+      "precision": 0.7841126606508066,
+      "recall": 0.8796127146510778,
+      "f1-score": 0.82421875,
+      "support": 2000.0
+    },
+    "weighted avg": {
+      "precision": 0.9779926168990976,
+      "recall": 0.973,
+      "f1-score": 0.974940625,
+      "support": 2000.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      1893,
+      39
+    ],
+    [
+      15,
+      53
+    ]
+  ]
+}

@@ -1,21 +1,25 @@
 """
-SmartFactory-RAG API — Unified gateway for RAG, predictions, and sensor data.
+SmartFactory-RAG API â€” Unified gateway for RAG, predictions, and sensor data.
 """
 
 from __future__ import annotations
+from src.api.analytics import router as analytics_router
+import asyncio
 
 import logging
 import time
 from contextlib import asynccontextmanager
 from typing import Optional
+import os
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
 
-# ── Schemas ─────────────────────────────────────────────────────────────
+# â”€â”€ Schemas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=2000)
@@ -50,7 +54,7 @@ class HealthResponse(BaseModel):
     components: dict
 
 
-# ── Application ─────────────────────────────────────────────────────────
+# â”€â”€ Application â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 _start_time = time.time()
 _rag_engine = None
@@ -70,7 +74,7 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing SmartFactory-RAG components...")
 
     try:
-        _rag_engine = RAGEngine(index_path="./data/index")
+        _rag_engine = RAGEngine(index_path="/app/data/index")
         logger.info("RAG engine initialized")
     except Exception as e:
         logger.warning(f"RAG engine not available: {e}")
@@ -82,9 +86,11 @@ async def lifespan(app: FastAPI):
         logger.warning(f"Predictor not available: {e}")
 
     _ingester = SensorIngester(
-        mqtt_broker="mqtt://localhost:1883",
+        mqtt_broker=os.getenv("MQTT_BROKER", "mqtt://localhost:1883"),
         topics=["factory/#"],
     )
+
+    ingestion_task = asyncio.create_task(_ingester.start())
 
     yield
 
@@ -93,14 +99,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
+
     title="SmartFactory-RAG",
-    description="Intelligent Manufacturing Assistant — RAG + Predictive Maintenance + Sensor Fusion",
+    description="Intelligent Manufacturing Assistant â€” RAG + Predictive Maintenance + Sensor Fusion",
     version="1.0.0",
     lifespan=lifespan,
 )
 
+app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://localhost:5174"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
-# ── Endpoints ───────────────────────────────────────────────────────────
+
+# â”€â”€ Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @app.get("/health", response_model=HealthResponse)
 async def health():
@@ -220,3 +229,74 @@ if __name__ == "__main__":
     import uvicorn
     logging.basicConfig(level=logging.INFO)
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
+
+class IndustrialPredictionRequest(BaseModel):
+    machine_type: str
+    air_temperature: float
+    process_temperature: float
+    rotational_speed: float
+    torque: float
+    tool_wear: float
+
+
+class IndustrialPredictionResponse(BaseModel):
+    prediction: str
+    failure_probability: float
+    failure_probability_percent: float
+    risk_level: str
+    model: str
+    model_version: str
+
+
+@app.post("/industrial/predict", response_model=IndustrialPredictionResponse)
+async def industrial_predict(request: IndustrialPredictionRequest):
+    try:
+        from src.industrial_ai.predict import predict_failure as _industrial_predict_failure
+        return _industrial_predict_failure(
+            machine_type=request.machine_type,
+            air_temperature=request.air_temperature,
+            process_temperature=request.process_temperature,
+            rotational_speed=request.rotational_speed,
+            torque=request.torque,
+            tool_wear=request.tool_wear,
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Industrial prediction failed: {exc}")
+
+class RULPredictionRequest(BaseModel):
+    op_setting_1: float
+    op_setting_2: float
+    op_setting_3: float
+    sensors: list[float]
+
+
+class RULPredictionResponse(BaseModel):
+    predicted_rul_cycles: float
+    risk_level: str
+    model: str
+    model_version: str
+
+
+@app.post("/industrial/rul", response_model=RULPredictionResponse)
+async def industrial_rul(request: RULPredictionRequest):
+    try:
+        from src.industrial_ai.rul_predict import predict_rul
+        return predict_rul(
+            request.op_setting_1,
+            request.op_setting_2,
+            request.op_setting_3,
+            request.sensors,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"RUL prediction failed: {exc}")
+
+
+
+app.include_router(analytics_router)
