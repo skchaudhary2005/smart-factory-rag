@@ -1,5 +1,5 @@
 """
-SmartFactory-RAG API â€” Unified gateway for RAG, predictions, and sensor data.
+SmartFactory-RAG API Ã¢â‚¬â€ Unified gateway for RAG, predictions, and sensor data.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 logger = logging.getLogger(__name__)
 
 
-# â”€â”€ Schemas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬ Schemas Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=2000)
@@ -54,7 +54,7 @@ class HealthResponse(BaseModel):
     components: dict
 
 
-# â”€â”€ Application â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬ Application Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 _start_time = time.time()
 _rag_engine = None
@@ -101,7 +101,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
 
     title="SmartFactory-RAG",
-    description="Intelligent Manufacturing Assistant â€” RAG + Predictive Maintenance + Sensor Fusion",
+    description="Intelligent Manufacturing Assistant Ã¢â‚¬â€ RAG + Predictive Maintenance + Sensor Fusion",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -109,7 +109,7 @@ app = FastAPI(
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://localhost:5174"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
-# â”€â”€ Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬ Endpoints Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 @app.get("/health", response_model=HealthResponse)
 async def health():
@@ -318,6 +318,8 @@ class MaintenanceAssessmentResponse(BaseModel):
     failure_assessment: dict
     rul_assessment: dict
     maintenance_action: str
+    risk_explanation: str
+    alert: dict
     evidence: list[dict]
 
 
@@ -327,8 +329,14 @@ async def industrial_maintenance_assessment(request: MaintenanceAssessmentReques
         from src.industrial_ai.predict import predict_failure
         from src.industrial_ai.rul_predict import predict_rul
         failure = predict_failure(machine_type=request.machine_type, air_temperature=request.air_temperature, process_temperature=request.process_temperature, rotational_speed=request.rotational_speed, torque=request.torque, tool_wear=request.tool_wear)
-        rul = predict_rul(request.op_setting_1, request.op_setting_2, request.op_setting_3, request.sensors)
-        levels = {failure['risk_level'], rul['risk_level']}
+        has_live_rul_features = len(request.sensors) == 21 and any(float(x) != 0.0 for x in request.sensors)
+        if has_live_rul_features:
+            rul = predict_rul(request.op_setting_1, request.op_setting_2, request.op_setting_3, request.sensors)
+        else:
+            rul = {'available': False, 'risk_level': 'UNAVAILABLE', 'reason': 'Live telemetry does not provide the 21 C-MAPSS sensor features required by the RUL model.', 'model': 'RandomForestRegressor', 'model_version': 'rf-rul-v1'}
+        levels = {failure['risk_level']}
+        if rul.get('available', True):
+            levels.add(rul['risk_level'])
         if 'HIGH' in levels:
             overall_risk = 'HIGH'
             action = 'Prioritize inspection. Check machine operating conditions and relevant motor protection components before continued operation.'
@@ -338,6 +346,16 @@ async def industrial_maintenance_assessment(request: MaintenanceAssessmentReques
         else:
             overall_risk = 'LOW'
             action = 'Continue monitoring under normal maintenance procedures.'
+        risk_probability = float(failure.get('failure_probability', 0.0))
+        if risk_probability >= 0.70:
+            risk_explanation = 'Failure risk is elevated based on the current machine operating conditions and learned failure pattern.'
+        elif risk_probability >= 0.30:
+            risk_explanation = 'Failure risk is moderate. Continue monitoring temperature, rotational speed, torque and tool wear for deterioration.'
+        else:
+            risk_explanation = 'Current operating conditions indicate a low predicted failure risk. Continue normal monitoring.'
+
+        alert = {'active': overall_risk in ('MEDIUM','HIGH'), 'severity': overall_risk, 'message': ('Immediate maintenance inspection recommended.' if overall_risk == 'HIGH' else 'Maintenance inspection should be scheduled.' if overall_risk == 'MEDIUM' else 'No immediate maintenance alert.')}
+
         evidence = []
         if _rag_engine is not None:
             try:
@@ -345,7 +363,7 @@ async def industrial_maintenance_assessment(request: MaintenanceAssessmentReques
                 evidence = [{'document': x.document, 'page': x.page, 'paragraph': x.paragraph, 'score': x.score, 'chunk_text': x.chunk_text} for x in rag.sources[:3]]
             except Exception as exc:
                 logger.warning('Maintenance RAG evidence unavailable: %s', exc)
-        return {'overall_risk': overall_risk, 'failure_assessment': failure, 'rul_assessment': rul, 'maintenance_action': action, 'evidence': evidence}
+        return {'overall_risk': overall_risk, 'failure_assessment': failure, 'rul_assessment': rul, 'maintenance_action': action, 'risk_explanation': risk_explanation, 'alert': alert, 'evidence': evidence}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     except FileNotFoundError as exc:
