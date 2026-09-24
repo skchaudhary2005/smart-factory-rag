@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=2000)
     top_k: int = Field(default=5, ge=1, le=20)
-    rerank: bool = True
+    rerank: bool = False
     language: Optional[str] = None  # "el", "en", or auto-detect
 
 class QueryResponse(BaseModel):

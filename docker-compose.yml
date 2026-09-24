@@ -4,7 +4,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - MQTT_BROKER=mqtt://mqtt-broker:1883
       - DATABASE_URL=postgresql://factory:factory@postgres:5432/smartfactory
       - REDIS_URL=redis://redis:6379
