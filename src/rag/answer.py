@@ -1,9 +1,9 @@
-"""Grounded answer generation — the LLM layer, built with Pydantic AI.
+"""Grounded answer generation â€” the LLM layer, built with Pydantic AI.
 
 The retriever (dense + sparse + rerank) is deterministic and lives in `engine.py`; this module is
 the *bounded judgement-and-explanation layer* on top of it. The agent answers ONLY from the
 retrieved chunks and returns a typed `GroundedAnswer` whose citations are validated against the
-chunks that were actually provided — so on a factory floor where a wrong answer costs €50k/hour,
+chunks that were actually provided â€” so on a factory floor where a wrong answer costs â‚¬50k/hour,
 the model cannot cite a page it never saw, and "I don't have enough information" is a first-class,
 structured outcome rather than a hallucinated guess.
 
@@ -14,9 +14,13 @@ with `TestModel` (`ALLOW_MODEL_REQUESTS=False`).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import os
 
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry, RunContext
+from pydantic_ai.models.google import GoogleModel
+from pydantic_ai.providers.google import GoogleProvider
+from google.genai import types
 
 from ..config import MODEL
 
@@ -62,11 +66,24 @@ _PERSONA = (
 )
 
 
+def _build_model(model):
+    if not model.startswith("google:"):
+        return model
+    model_name = model.split(":", 1)[1]
+    client = __import__("google.genai", fromlist=["Client"]).Client(
+        api_key=__import__("os").environ.get("GEMINI_API_KEY"),
+        http_options=types.HttpOptions(
+            timeout=15000,
+            retry_options=types.HttpRetryOptions(attempts=1),
+        ),
+    )
+    return GoogleModel(model_name, provider=GoogleProvider(client=client))
+
 answer_agent = Agent(
     deps_type=AnswerDeps,
     output_type=GroundedAnswer,
     instructions=_PERSONA,
-    retries=2,
+    retries=0,
 )
 
 
@@ -79,7 +96,7 @@ def _inject_context(ctx: RunContext[AnswerDeps]) -> str:
         f"[Source {i + 1}: {c.get('document', 'unknown')}, p.{c.get('page', 0)}]\n{c.get('chunk_text', '')}"
         for i, c in enumerate(chunks)
     )
-    return f"Retrieved context ({len(chunks)} chunks) — cite these by their 1-based index:\n\n{listing}"
+    return f"Retrieved context ({len(chunks)} chunks) â€” cite these by their 1-based index:\n\n{listing}"
 
 
 @answer_agent.output_validator
@@ -88,15 +105,33 @@ def _ground_citations(ctx: RunContext[AnswerDeps], out: GroundedAnswer) -> Groun
     for c in out.citations:
         if c.source_id > n:
             raise ModelRetry(
-                f"citation source_id={c.source_id} does not exist — only {n} chunks were retrieved "
+                f"citation source_id={c.source_id} does not exist â€” only {n} chunks were retrieved "
                 f"(valid ids: 1..{n}). Cite only provided sources; never invent a page."
             )
     if not out.insufficient_context and n > 0 and not out.citations:
         raise ModelRetry(
-            "you answered from context but cited nothing — cite at least one [Source N], or set "
+            "you answered from context but cited nothing â€” cite at least one [Source N], or set "
             "insufficient_context=true if the context truly didn't cover it."
         )
     return out
+
+
+def _build_model(model: str):
+    if not model.startswith("google:"):
+        return model
+    from google import genai
+    from google.genai.types import HttpOptions, HttpRetryOptions
+    from pydantic_ai.models.google import GoogleModel
+    from pydantic_ai.providers.google import GoogleProvider
+    model_name = model.split(":", 1)[1]
+    client = genai.Client(
+        api_key=os.environ["GEMINI_API_KEY"],
+        http_options=HttpOptions(
+            timeout=15000,
+            retry_options=HttpRetryOptions(attempts=1),
+        ),
+    )
+    return GoogleModel(model_name, provider=GoogleProvider(client=client))
 
 
 async def run_answer_agent(
@@ -107,5 +142,5 @@ async def run_answer_agent(
 ) -> GroundedAnswer:
     """Run the grounded answer agent over the retrieved chunks."""
     deps = AnswerDeps(question=question, chunks=chunks)
-    res = await answer_agent.run(question, deps=deps, model=model)
+    res = await answer_agent.run(question, deps=deps, model=_build_model(model))
     return res.output

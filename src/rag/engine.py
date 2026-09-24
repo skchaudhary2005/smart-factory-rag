@@ -1,5 +1,5 @@
 """
-SmartFactory-RAG Engine — Hybrid retrieval with source traceability.
+SmartFactory-RAG Engine â€” Hybrid retrieval with source traceability.
 
 Combines dense (BGE-M3) + sparse (BM25) retrieval with cross-encoder
 reranking for manufacturing document Q&A.
@@ -28,7 +28,7 @@ class Source:
     score: float
 
     def __str__(self) -> str:
-        return f"{self.document} (p.{self.page}, §{self.paragraph}) [score={self.score:.3f}]"
+        return f"{self.document} (p.{self.page}, Â§{self.paragraph}) [score={self.score:.3f}]"
 
 
 @dataclass
@@ -244,7 +244,7 @@ class RAGEngine:
 
         retrieval_time = (time.perf_counter() - t0) * 1000
 
-        # Generation phase — bounded judgement over the retrieved chunks (Pydantic AI).
+        # Generation phase â€” bounded judgement over the retrieved chunks (Pydantic AI).
         t1 = time.perf_counter()
         grounded = self._answer(question, candidates)
         generation_time = (time.perf_counter() - t1) * 1000
@@ -281,7 +281,7 @@ class RAGEngine:
         """Run the typed Pydantic AI answer agent, safely from sync or async callers.
 
         `query()` is sync but is invoked from an async FastAPI endpoint, so an event loop may
-        already be running — in that case run the agent's coroutine on a worker thread rather than
+        already be running â€” in that case run the agent's coroutine on a worker thread rather than
         calling `asyncio.run` (which would raise inside a running loop).
         """
         from .answer import GroundedAnswer, run_answer_agent
@@ -301,12 +301,35 @@ class RAGEngine:
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
                 return ex.submit(lambda: asyncio.run(_coro())).result()
-        except Exception as e:  # never let a generation failure sink the whole query
-            logger.exception("Answer generation failed: %s", e)
+        except Exception as e:  # provider failure must not break the RAG endpoint
+            logger.warning("LLM generation unavailable; using document fallback: %s", e)
+            from .answer import SourceCitation
+            if not candidates:
+                return GroundedAnswer(
+                    answer="No relevant documentation was retrieved for this question.",
+                    citations=[],
+                    insufficient_context=True,
+                    safety_critical=False,
+                    confidence=0.0,
+                )
+            excerpts = []
+            citations = []
+            for i, c in enumerate(candidates[:3], 1):
+                text = " ".join(str(c.get("chunk_text", "")).split())
+                excerpts.append(
+                    f"[Source {i} - {c.get('document', 'unknown')}, p.{c.get('page', 0)}] {text}"
+                )
+                citations.append(
+                    SourceCitation(
+                        source_id=i,
+                        document=c.get("document", "unknown"),
+                        page=c.get("page", 0),
+                    )
+                )
             return GroundedAnswer(
-                answer="Answer generation is unavailable right now.",
-                citations=[],
-                insufficient_context=True,
+                answer="LLM generation is temporarily unavailable. The following passages are the directly retrieved documentation relevant to the question:\n\n" + "\n\n".join(excerpts),
+                citations=citations,
+                insufficient_context=False,
                 safety_critical=False,
                 confidence=0.0,
             )
