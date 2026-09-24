@@ -299,4 +299,59 @@ async def industrial_rul(request: RULPredictionRequest):
 
 
 
+class MaintenanceAssessmentRequest(BaseModel):
+    machine_type: str
+    air_temperature: float
+    process_temperature: float
+    rotational_speed: float
+    torque: float
+    tool_wear: float
+    op_setting_1: float
+    op_setting_2: float
+    op_setting_3: float
+    sensors: list[float]
+    question: str = 'What maintenance checks are relevant for this machine based on the current condition?'
+
+
+class MaintenanceAssessmentResponse(BaseModel):
+    overall_risk: str
+    failure_assessment: dict
+    rul_assessment: dict
+    maintenance_action: str
+    evidence: list[dict]
+
+
+@app.post('/industrial/maintenance-assessment', response_model=MaintenanceAssessmentResponse)
+async def industrial_maintenance_assessment(request: MaintenanceAssessmentRequest):
+    try:
+        from src.industrial_ai.predict import predict_failure
+        from src.industrial_ai.rul_predict import predict_rul
+        failure = predict_failure(machine_type=request.machine_type, air_temperature=request.air_temperature, process_temperature=request.process_temperature, rotational_speed=request.rotational_speed, torque=request.torque, tool_wear=request.tool_wear)
+        rul = predict_rul(request.op_setting_1, request.op_setting_2, request.op_setting_3, request.sensors)
+        levels = {failure['risk_level'], rul['risk_level']}
+        if 'HIGH' in levels:
+            overall_risk = 'HIGH'
+            action = 'Prioritize inspection. Check machine operating conditions and relevant motor protection components before continued operation.'
+        elif 'MEDIUM' in levels:
+            overall_risk = 'MEDIUM'
+            action = 'Schedule a maintenance inspection and monitor the machine closely for deterioration.'
+        else:
+            overall_risk = 'LOW'
+            action = 'Continue monitoring under normal maintenance procedures.'
+        evidence = []
+        if _rag_engine is not None:
+            try:
+                rag = _rag_engine.query(request.question, top_k=3, rerank=False)
+                evidence = [{'document': x.document, 'page': x.page, 'paragraph': x.paragraph, 'score': x.score, 'chunk_text': x.chunk_text} for x in rag.sources[:3]]
+            except Exception as exc:
+                logger.warning('Maintenance RAG evidence unavailable: %s', exc)
+        return {'overall_risk': overall_risk, 'failure_assessment': failure, 'rul_assessment': rul, 'maintenance_action': action, 'evidence': evidence}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f'Maintenance assessment failed: {exc}')
+
+
 app.include_router(analytics_router)
