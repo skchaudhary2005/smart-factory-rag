@@ -1,9 +1,14 @@
+import MachineMonitoring from "./MachineMonitoring";
+import SensorIntelligence from "./SensorIntelligence";
 import { useEffect, useState } from "react";
 import { Activity, Cpu, Gauge, RefreshCw, ShieldCheck, Thermometer, Wrench } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import "./App.css";
+import Analytics from "./Analytics";
+import FactoryArchitecture from "./FactoryArchitecture";
+import Factory3D from "./Factory3D";
 
-const API="http://localhost:8000";
+const API=String(import.meta.env.VITE_API_BASE_URL||"http://localhost:8000").replace(/\/$/,"");
 
 export default function App(){
  const [summary,setSummary]=useState<any>(null);
@@ -22,7 +27,8 @@ export default function App(){
  };
  useEffect(()=>{load();const t=setInterval(load,5000);return()=>clearInterval(t)},[]);
  const machine=machines[0],latest=history[history.length-1];
- const [assessment,setAssessment]=useState<any>(null);
+ const [assessment,setAssessment]=useState<any>(null); const [question,setQuestion]=useState("What maintenance checks should be performed for this machine?"); const [ragAnswer,setRagAnswer]=useState<any>(null);
+
  const [assessing,setAssessing]=useState(false);
 
  const runAssessment=async()=>{
@@ -41,10 +47,10 @@ export default function App(){
     op_setting_2:0,
     op_setting_3:0,
     sensors:Array(21).fill(0),
-    question:"What maintenance action is recommended for the current machine condition?"
+    question
    };
 
-   const response=await fetch(
+   const ragResponse=await fetch(`${API}/query`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question,top_k:3,rerank:false})}); if(ragResponse.ok){setRagAnswer(await ragResponse.json());}else{setRagAnswer(null);} const response=await fetch(
     `${API}/industrial/maintenance-assessment`,
     {
      method:"POST",
@@ -85,16 +91,21 @@ export default function App(){
   <section className="panel" style={{marginTop:24}}>
    <div className="head">
     <div>
+   <MachineMonitoring machine={machine} latest={latest} />
+   <SensorIntelligence history={history} latest={latest} />
      <small>AI MAINTENANCE COPILOT</small>
      <h2>Maintenance Assessment</h2>
     </div>
 
-    <button onClick={runAssessment} disabled={assessing}>
-     {assessing?"Assessing...":"Run Assessment"}
-    </button>
+    
+     <button type="button" onClick={runAssessment} disabled={assessing||!latest}>{assessing?"Assessing...":"Run Assessment"}</button>
    </div>
 
-   {!assessment && (
+   <div className="assistant-prompts"><small>AI ASSISTANT</small><div><button type="button" onClick={()=>setQuestion("Why is this machine considered low risk?")}>Why is this machine low risk?</button><button type="button" onClick={()=>setQuestion("What maintenance checks are relevant?")}>Maintenance checks</button><button type="button" onClick={()=>setQuestion("Which sensor values should I monitor?")}>Sensor guidance</button></div></div>
+<div className="copilot-input"><input type="text" value={question} onChange={(e)=>setQuestion(e.target.value)} placeholder="Ask the maintenance copilot about this machine..." /><button type="button" onClick={runAssessment} disabled={assessing||!latest}>{assessing?"Analyzing...":"Analyze Machine"}</button></div>
+       {ragAnswer && <div className="rag-result"><small>RAG KNOWLEDGE</small><b>{ragAnswer.answer}</b><span>Confidence: {(Number(ragAnswer.confidence||0)*100).toFixed(1)}%</span>{Array.isArray(ragAnswer.sources)&&ragAnswer.sources.length>0&&<div className="rag-sources">{ragAnswer.sources.map((src:any,i:number)=><div key={i}><small>Source {i+1}</small><span>{src.document} · p.{src.page}</span></div>)}</div>}</div>}
+
+{!assessment && (
     <div className="status">
      <small>READY</small>
      <b>Run an AI assessment using the latest machine telemetry.</b>
@@ -164,10 +175,15 @@ export default function App(){
    )}
   </section>
 
+  <section className="panel alerts" style={{marginTop:24}}><div className="head"><div><small>ALERT CENTER</small><h2>Machine Alerts</h2></div><span className="system-status">LIVE MONITORING</span></div><div className="alert-list">{(summary?.high_risk_readings??0)>0?<div className="alert-item high"><span className="alert-dot"></span><div><b>High-risk machine condition detected</b><small>Immediate maintenance assessment recommended.</small></div><strong>{summary?.high_risk_readings}</strong></div>:(summary?.medium_risk_readings??0)>0?<div className="alert-item medium"><span className="alert-dot"></span><div><b>Medium-risk telemetry detected</b><small>Continue monitoring and schedule maintenance inspection.</small></div><strong>{summary?.medium_risk_readings}</strong></div>:<div className="alert-item clear"><span className="alert-dot"></span><div><b>No active alerts</b><small>Current telemetry is within the monitored risk thresholds.</small></div><strong>0</strong></div>}</div></section>
+
   <section className="grid lower">
    <div className="panel"><small>RISK DISTRIBUTION</small><h2>Factory Health</h2><Row name="Low risk" value={summary?.low_risk_readings??0} cls="low"/><Row name="Medium risk" value={summary?.medium_risk_readings??0} cls="medium"/><Row name="High risk" value={summary?.high_risk_readings??0} cls="high"/></div>
    <div className="panel"><small>PREDICTIVE MAINTENANCE</small><h2>AI Model Status</h2><Status name="Failure Model" value="RandomForest · rf-industrial-v1"/><Status name="RUL Model" value="RandomForest · rf-rul-v1"/><Status name="RAG Engine" value="FAISS + BM25 · Ready"/><Status name="Sensor Pipeline" value="MQTT → TimescaleDB · Live"/></div>
   </section>
+  <Analytics summary={summary} history={history}/>
+  <FactoryArchitecture/>
+  <Factory3D/>
   <footer>Smart Factory RAG · Industrial AI Monitoring</footer>
  </div>
 }
