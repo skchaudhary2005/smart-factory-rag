@@ -3,7 +3,7 @@ SmartFactory-RAG API Ã¢â‚¬â€ Unified gateway for RAG, predictions, an
 """
 
 from __future__ import annotations
-from src.api.analytics import router as analytics_router
+from src.api.analytics import router as analytics_router, init_db
 import asyncio
 
 import logging
@@ -71,7 +71,7 @@ async def lifespan(app: FastAPI):
     from src.ml.predictor import FailurePredictor
     from src.sensors.ingester import SensorIngester
 
-    logger.info("Initializing SmartFactory-RAG components...")
+    logger.info("Initializing SmartFactory-RAG components...")\n    try:\n        init_db()\n        logger.info("Analytics database initialized")\n    except Exception as e:\n        logger.warning(f"Analytics database initialization failed: {e}")
 
     try:
         _rag_engine = RAGEngine(index_path="/app/data/index")

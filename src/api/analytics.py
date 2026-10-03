@@ -5,6 +5,27 @@ import psycopg
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://factory:factory@postgres:5432/smartfactory")
 
+def init_db():
+    with psycopg.connect(DATABASE_URL) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sensor_readings (
+                time TIMESTAMPTZ NOT NULL,
+                machine_id TEXT NOT NULL,
+                machine_type TEXT,
+                air_temperature DOUBLE PRECISION,
+                process_temperature DOUBLE PRECISION,
+                rotational_speed DOUBLE PRECISION,
+                torque DOUBLE PRECISION,
+                tool_wear DOUBLE PRECISION,
+                failure_probability DOUBLE PRECISION,
+                prediction TEXT,
+                risk_level TEXT,
+                model_version TEXT
+            )
+        """)
+        conn.commit()
+
+
 def db():
     safe_url = DATABASE_URL[:30] + "..." if DATABASE_URL else DATABASE_URL
     print("DATABASE_URL DEBUG:", repr(safe_url))
