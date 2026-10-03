@@ -71,7 +71,12 @@ async def lifespan(app: FastAPI):
     from src.ml.predictor import FailurePredictor
     from src.sensors.ingester import SensorIngester
 
-    logger.info("Initializing SmartFactory-RAG components...")\n    try:\n        init_db()\n        logger.info("Analytics database initialized")\n    except Exception as e:\n        logger.warning(f"Analytics database initialization failed: {e}")
+    logger.info("Initializing SmartFactory-RAG components...")
+    try:
+        init_db()
+        logger.info("Analytics database initialized")
+    except Exception as e:
+        logger.warning(f"Analytics database initialization failed: {e}")
 
     try:
         _rag_engine = RAGEngine(index_path="/app/data/index")
