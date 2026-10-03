@@ -44,7 +44,7 @@ def summary():
 @router.get("/machines")
 def machines():
     with db() as conn:
-        rows = conn.execute("""SELECT machine_id, COUNT(*) AS readings, MAX(time) AS last_seen, AVG(failure_probability) AS avg_failure_probability, MAX(failure_probability) AS max_failure_probability, (array_agg(risk_level ORDER BY time DESC))[1] AS current_risk, (array_agg(prediction ORDER BY time DESC))[1] AS current_prediction FROM sensor_readings GROUP BY machine_id ORDER BY machine_id""").fetchall()
+        rows = conn.execute("""SELECT machine_id, COUNT(*) AS readings, MAX(time) AS last_seen, COALESCE(AVG(failure_probability),0) AS avg_failure_probability, COALESCE(MAX(failure_probability),0) AS max_failure_probability, (array_agg(risk_level ORDER BY time DESC))[1] AS current_risk, (array_agg(prediction ORDER BY time DESC))[1] AS current_prediction FROM sensor_readings GROUP BY machine_id ORDER BY machine_id""").fetchall()
     return {"machines": [{"machine_id":r[0],"readings":r[1],"last_seen":r[2],"avg_failure_probability":round(float(r[3]),6),"max_failure_probability":round(float(r[4]),6),"current_risk":r[5],"current_prediction":r[6]} for r in rows]}
 
 @router.get("/machines/{machine_id}")
