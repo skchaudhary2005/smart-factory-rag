@@ -12,9 +12,13 @@ def db():
 
 @router.get("/summary")
 def summary():
-    with db() as conn:
-        row = conn.execute("""SELECT COUNT(*) AS readings, COUNT(DISTINCT machine_id) AS machines, COALESCE(AVG(failure_probability),0) AS avg_failure_probability, COALESCE(MAX(failure_probability),0) AS max_failure_probability, COUNT(*) FILTER (WHERE prediction='FAILURE_RISK') AS failure_predictions, COUNT(*) FILTER (WHERE risk_level='HIGH') AS high_risk_readings, COUNT(*) FILTER (WHERE risk_level='MEDIUM') AS medium_risk_readings, COUNT(*) FILTER (WHERE risk_level='LOW') AS low_risk_readings FROM sensor_readings""").fetchone()
-    return {"readings": row[0], "machines": row[1], "avg_failure_probability": round(float(row[2]),6), "max_failure_probability": round(float(row[3]),6), "failure_predictions": row[4], "high_risk_readings": row[5], "medium_risk_readings": row[6], "low_risk_readings": row[7]}
+    try:
+        with db() as conn:
+            row = conn.execute("""SELECT COUNT(*) AS readings, COUNT(DISTINCT machine_id) AS machines, COALESCE(AVG(failure_probability),0) AS avg_failure_probability, COALESCE(MAX(failure_probability),0) AS max_failure_probability, COUNT(*) FILTER (WHERE prediction='FAILURE_RISK') AS failure_predictions, COUNT(*) FILTER (WHERE risk_level='HIGH') AS high_risk_readings, COUNT(*) FILTER (WHERE risk_level='MEDIUM') AS medium_risk_readings, COUNT(*) FILTER (WHERE risk_level='LOW') AS low_risk_readings FROM sensor_readings""").fetchone()
+        return {"readings": row[0], "machines": row[1], "avg_failure_probability": round(float(row[2]),6), "max_failure_probability": round(float(row[3]),6), "failure_predictions": row[4], "high_risk_readings": row[5], "medium_risk_readings": row[6], "low_risk_readings": row[7]}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analytics DB error: {type(e).__name__}: {e}")
 
 @router.get("/machines")
 def machines():
