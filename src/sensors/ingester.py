@@ -295,6 +295,8 @@ class SensorIngester:
             data = json.loads(payload)
             equipment_id = data.get("equipment_id", topic.split("/")[-2])
             timestamp = data.get("timestamp", time.time())
+            if timestamp > 100000000000:
+                timestamp = timestamp / 1000.0
 
             # Extract sensor values
             values = np.array([
