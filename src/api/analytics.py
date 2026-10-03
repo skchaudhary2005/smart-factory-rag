@@ -6,6 +6,8 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://factory:factory@postgres:5432/smartfactory")
 
 def db():
+    safe_url = DATABASE_URL[:30] + "..." if DATABASE_URL else DATABASE_URL
+    print("DATABASE_URL DEBUG:", repr(safe_url))
     return psycopg.connect(DATABASE_URL)
 
 @router.get("/summary")
