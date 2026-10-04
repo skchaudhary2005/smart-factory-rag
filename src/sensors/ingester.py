@@ -351,47 +351,155 @@ class SensorIngester:
             logger.error(f"Failed to process message on {topic}: {e}")
 
     async def start(self) -> None:
-        """Start the MQTT ingestion loop."""
-        import aiomqtt
+        """Start the MQTT ingestion loop using Paho MQTT."""
+        import paho.mqtt.client as mqtt
 
         self._running = True
         self._stats["start_time"] = time.time()
+
         logger.info(f"Starting sensor ingestion from {self.mqtt_broker}")
-        _mqtt_pw = os.getenv("MQTT_PASSWORD", "")
-        import hashlib
-        logger.warning("MQTT DIAGNOSTIC: username=%r, password_length=%d, password_sha256=%s", os.getenv("MQTT_USERNAME", ""), len(_mqtt_pw), hashlib.sha256(_mqtt_pw.encode()).hexdigest())
 
         while self._running:
+            client = None
+            queue: asyncio.Queue[tuple[str, bytes]] = asyncio.Queue()
+            loop = asyncio.get_running_loop()
+
             try:
-                # Parse broker URL and configure optional TLS/authentication
                 parsed = urlparse(self.mqtt_broker)
                 broker_host = parsed.hostname or ""
-                broker_port = parsed.port or (8883 if parsed.scheme in ("mqtts", "ssl") else 1883)
+                broker_port = parsed.port or (
+                    8883 if parsed.scheme in ("mqtts", "ssl") else 1883
+                )
+
                 mqtt_username = os.getenv("MQTT_USERNAME")
                 mqtt_password = os.getenv("MQTT_PASSWORD")
-                tls_context = ssl.create_default_context() if parsed.scheme in ("mqtts", "ssl") else None
 
-                async with aiomqtt.Client(
-                    hostname=broker_host,
-                    port=broker_port,
-                    username=mqtt_username,
-                    password=mqtt_password,
-                    tls_context=tls_context,
-                ) as client:
-                    for topic in self.topics:
-                        await client.subscribe(topic)
-                    logger.info(f"Subscribed to {self.topics}")
+                client = mqtt.Client(
+                    mqtt.CallbackAPIVersion.VERSION2
+                )
 
-                    async for message in client.messages:
-                        await self._process_message(
-                            str(message.topic),
-                            message.payload,
+                if mqtt_username:
+                    client.username_pw_set(
+                        mqtt_username,
+                        mqtt_password,
+                    )
+
+                if parsed.scheme in ("mqtts", "ssl"):
+                    client.tls_set(
+                        context=ssl.create_default_context()
+                    )
+
+                def on_connect(
+                    _client,
+                    _userdata,
+                    _flags,
+                    reason_code,
+                    _properties,
+                ):
+                    if reason_code == 0:
+                        logger.info(
+                            f"Paho MQTT connected to "
+                            f"{broker_host}:{broker_port}"
                         )
 
+                        for topic in self.topics:
+                            result, _mid = _client.subscribe(
+                                topic,
+                                qos=1,
+                            )
+
+                            if result == mqtt.MQTT_ERR_SUCCESS:
+                                logger.info(
+                                    f"Subscribed to MQTT topic: {topic}"
+                                )
+                            else:
+                                logger.error(
+                                    f"Failed to subscribe to {topic}: "
+                                    f"result={result}"
+                                )
+                    else:
+                        logger.error(
+                            f"Paho MQTT connection refused: "
+                            f"reason_code={reason_code}"
+                        )
+
+                def on_message(
+                    _client,
+                    _userdata,
+                    message,
+                ):
+                    try:
+                        loop.call_soon_threadsafe(
+                            queue.put_nowait,
+                            (
+                                str(message.topic),
+                                bytes(message.payload),
+                            ),
+                        )
+                    except Exception as callback_error:
+                        logger.error(
+                            f"MQTT message callback error: "
+                            f"{callback_error}"
+                        )
+
+                client.on_connect = on_connect
+                client.on_message = on_message
+
+                logger.info(
+                    f"Connecting to MQTT broker "
+                    f"{broker_host}:{broker_port}"
+                )
+
+                client.connect(
+                    broker_host,
+                    broker_port,
+                    keepalive=60,
+                )
+
+                client.loop_start()
+
+                logger.info(
+                    "Paho MQTT network loop started"
+                )
+
+                while self._running:
+                    try:
+                        topic, payload = await asyncio.wait_for(
+                            queue.get(),
+                            timeout=1.0,
+                        )
+
+                        await self._process_message(
+                            topic,
+                            payload,
+                        )
+
+                    except asyncio.TimeoutError:
+                        continue
+
             except Exception as e:
-                logger.error(f"MQTT connection error: {e}. Reconnecting in 5s...")
+                logger.error(
+                    f"MQTT connection error: {e}. "
+                    f"Reconnecting in 5s..."
+                )
+
                 await asyncio.sleep(5)
 
+            finally:
+                if client is not None:
+                    try:
+                        client.loop_stop()
+                    except Exception:
+                        pass
+
+                    try:
+                        client.disconnect()
+                    except Exception:
+                        pass
+
+                    logger.info(
+                        "Paho MQTT client disconnected"
+                    )
     async def stop(self) -> None:
         """Gracefully stop ingestion."""
         self._running = False
