@@ -385,9 +385,7 @@ class SensorIngester:
                     )
 
                 if parsed.scheme in ("mqtts", "ssl"):
-                    client.tls_set(
-                        context=ssl.create_default_context()
-                    )
+                    client.tls_set()
 
                 def on_connect(
                     _client,
