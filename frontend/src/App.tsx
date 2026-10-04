@@ -1,10 +1,10 @@
 import MachineMonitoring from "./MachineMonitoring";
 import SensorIntelligence from "./SensorIntelligence";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Activity, Cpu, Gauge, RefreshCw, ShieldCheck, Thermometer, Wrench } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import "./App.css";
-import Analytics from "./Analytics";
+const Analytics = lazy(() => import('./Analytics'));
+const TelemetryChart = lazy(() => import('./TelemetryChart'));
 import FactoryArchitecture from "./FactoryArchitecture";
 import Factory3D from "./Factory3D";
 
@@ -85,7 +85,7 @@ export default function App(){
     <div className="machine"><div><small>Prediction</small><b>{machine?.current_prediction||"N/A"}</b></div><div><small>Max Failure Risk</small><b>{((machine?.max_failure_probability||0)*100).toFixed(1)}%</b></div></div>
     <div className="metrics"><Metric icon={<Thermometer/>} name="Air" value={latest?.air_temperature?`${latest.air_temperature.toFixed(1)} K`:"--"}/><Metric icon={<Thermometer/>} name="Process" value={latest?.process_temperature?`${latest.process_temperature.toFixed(1)} K`:"--"}/><Metric icon={<Gauge/>} name="RPM" value={latest?.rotational_speed?.toFixed(0)||"--"}/><Metric icon={<Wrench/>} name="Torque" value={latest?.torque?`${latest.torque.toFixed(1)} Nm`:"--"}/></div>
    </div>
-   <div className="panel chart"><div className="head"><div><small>LIVE TELEMETRY</small><h2>Failure Probability</h2></div><span className="live">● LIVE</span></div><ResponsiveContainer width="100%" height={280}><LineChart data={history}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="time" tickFormatter={v=>new Date(v).toLocaleTimeString()}/><YAxis tickFormatter={v=>`${(v*100).toFixed(0)}%`}/><Tooltip/><Line type="monotone" dataKey="failure_probability" strokeWidth={3} dot={false}/></LineChart></ResponsiveContainer></div>
+   <div className='panel chart'><div className='head'><div><small>LIVE TELEMETRY</small><h2>Failure Probability</h2></div><span className='live'>LIVE</span></div><Suspense fallback={<div className='status'>Loading chart...</div>}><TelemetryChart history={history}/></Suspense></div>
   </section>
 
   <section className="panel" style={{marginTop:24}}>
@@ -103,7 +103,7 @@ export default function App(){
 
    <div className="assistant-prompts"><small>AI ASSISTANT</small><div><button type="button" onClick={()=>setQuestion("Why is this machine considered low risk?")}>Why is this machine low risk?</button><button type="button" onClick={()=>setQuestion("What maintenance checks are relevant?")}>Maintenance checks</button><button type="button" onClick={()=>setQuestion("Which sensor values should I monitor?")}>Sensor guidance</button></div></div>
 <div className="copilot-input"><input type="text" value={question} onChange={(e)=>setQuestion(e.target.value)} placeholder="Ask the maintenance copilot about this machine..." /><button type="button" onClick={runAssessment} disabled={assessing||!latest}>{assessing?"Analyzing...":"Analyze Machine"}</button></div>
-       {ragAnswer && <div className="rag-result"><small>RAG KNOWLEDGE</small><b>{ragAnswer.answer}</b><span>Confidence: {(Number(ragAnswer.confidence||0)*100).toFixed(1)}%</span>{Array.isArray(ragAnswer.sources)&&ragAnswer.sources.length>0&&<div className="rag-sources">{ragAnswer.sources.map((src:any,i:number)=><div key={i}><small>Source {i+1}</small><span>{src.document} · p.{src.page}</span></div>)}</div>}</div>}
+       {ragAnswer && <div className="rag-result"><small>RAG KNOWLEDGE</small><b>{ragAnswer.answer}</b><span>Confidence: {(Number(ragAnswer.confidence||0)*100).toFixed(1)}%</span>{Array.isArray(ragAnswer.sources)&&ragAnswer.sources.length>0&&<div className="rag-sources">{ragAnswer.sources.map((src:any,i:number)=><div key={i}><small>Source {i+1}</small><span>{src.document} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· p.{src.page}</span></div>)}</div>}</div>}
 
 {!assessment && (
     <div className="status">
@@ -124,7 +124,7 @@ export default function App(){
        <small>FAILURE ASSESSMENT</small>
        <b>
         {assessment.failure_assessment?.prediction}
-        {" · "}
+        {" ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· "}
         {Number(
          assessment.failure_assessment?.failure_probability_percent||0
         ).toFixed(2)}%
@@ -165,7 +165,7 @@ export default function App(){
        {assessment.evidence.map((e:any,i:number)=>(
         <div key={i} style={{marginTop:8}}>
          <b>Page {e.page}</b>
-         {" — "}
+         {" ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â "}
          {e.chunk_text}
         </div>
        ))}
@@ -179,15 +179,19 @@ export default function App(){
 
   <section className="grid lower">
    <div className="panel"><small>RISK DISTRIBUTION</small><h2>Factory Health</h2><Row name="Low risk" value={summary?.low_risk_readings??0} cls="low"/><Row name="Medium risk" value={summary?.medium_risk_readings??0} cls="medium"/><Row name="High risk" value={summary?.high_risk_readings??0} cls="high"/></div>
-   <div className="panel"><small>PREDICTIVE MAINTENANCE</small><h2>AI Model Status</h2><Status name="Failure Model" value="RandomForest · rf-industrial-v1"/><Status name="RUL Model" value="RandomForest · rf-rul-v1"/><Status name="RAG Engine" value="FAISS + BM25 · Ready"/><Status name="Sensor Pipeline" value="MQTT → TimescaleDB · Live"/></div>
+   <div className="panel"><small>PREDICTIVE MAINTENANCE</small><h2>AI Model Status</h2><Status name="Failure Model" value="RandomForest ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· rf-industrial-v1"/><Status name="RUL Model" value="RandomForest ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· rf-rul-v1"/><Status name="RAG Engine" value="FAISS + BM25 ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Ready"/><Status name="Sensor Pipeline" value="MQTT ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ TimescaleDB ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Live"/></div>
   </section>
-  <Analytics summary={summary} history={history}/>
+  <Suspense fallback={<div className={'status'}>Loading analytics...</div>}><Analytics summary={summary} history={history}/></Suspense>
   <FactoryArchitecture/>
   <Factory3D/>
-  <footer>Smart Factory RAG · Industrial AI Monitoring</footer>
+  <footer>Smart Factory RAG ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Industrial AI Monitoring</footer>
  </div>
 }
 function Card({icon,title,value}:{icon:any,title:string,value:any}){return <div className="stat">{icon}<div><small>{title}</small><strong>{value}</strong></div></div>}
 function Metric({icon,name,value}:{icon:any,name:string,value:string}){return <div>{icon}<small>{name}</small><b>{value}</b></div>}
 function Row({name,value,cls}:{name:string,value:number,cls:string}){return <div className="row"><i className={cls}></i><span>{name}</span><b>{value}</b></div>}
 function Status({name,value}:{name:string,value:string}){return <div className="status"><small>{name}</small><b>{value}</b></div>}
+
+
+
+
