@@ -14,6 +14,8 @@ import asyncio
 import json
 import logging
 import time
+import ssl
+from urllib.parse import urlparse
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Any, Callable, Coroutine, Optional
@@ -358,11 +360,21 @@ class SensorIngester:
 
         while self._running:
             try:
-                # Parse broker URL
-                broker_host = self.mqtt_broker.replace("mqtt://", "").split(":")[0]
-                broker_port = int(self.mqtt_broker.split(":")[-1]) if ":" in self.mqtt_broker.replace("mqtt://", "") else 1883
+                # Parse broker URL and configure optional TLS/authentication
+                parsed = urlparse(self.mqtt_broker)
+                broker_host = parsed.hostname or ""
+                broker_port = parsed.port or (8883 if parsed.scheme in ("mqtts", "ssl") else 1883)
+                mqtt_username = os.getenv("MQTT_USERNAME")
+                mqtt_password = os.getenv("MQTT_PASSWORD")
+                tls_context = ssl.create_default_context() if parsed.scheme in ("mqtts", "ssl") else None
 
-                async with aiomqtt.Client(broker_host, broker_port) as client:
+                async with aiomqtt.Client(
+                    hostname=broker_host,
+                    port=broker_port,
+                    username=mqtt_username,
+                    password=mqtt_password,
+                    tls_context=tls_context,
+                ) as client:
                     for topic in self.topics:
                         await client.subscribe(topic)
                     logger.info(f"Subscribed to {self.topics}")
