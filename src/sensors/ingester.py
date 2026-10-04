@@ -357,6 +357,9 @@ class SensorIngester:
         self._running = True
         self._stats["start_time"] = time.time()
         logger.info(f"Starting sensor ingestion from {self.mqtt_broker}")
+        _mqtt_pw = os.getenv("MQTT_PASSWORD", "")
+        import hashlib
+        logger.warning("MQTT DIAGNOSTIC: username=%r, password_length=%d, password_sha256=%s", os.getenv("MQTT_USERNAME", ""), len(_mqtt_pw), hashlib.sha256(_mqtt_pw.encode()).hexdigest())
 
         while self._running:
             try:
