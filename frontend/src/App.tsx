@@ -13,6 +13,7 @@ const API=String(import.meta.env.VITE_API_BASE_URL||"http://localhost:8000").rep
 export default function App(){
  const [summary,setSummary]=useState<any>(null);
  const [machines,setMachines]=useState<any[]>([]);
+ const [selectedMachineId,setSelectedMachineId]=useState<string>("");
  const [history,setHistory]=useState<any[]>([]);
  const [error,setError]=useState("");
  const load=async()=>{
@@ -21,12 +22,11 @@ export default function App(){
    const [a,b]=await Promise.all([fetch(`${API}/analytics/summary`),fetch(`${API}/analytics/machines`)]);
    if(!a.ok||!b.ok)throw Error("Backend API unavailable");
    const s=await a.json(),m=await b.json();
-   setSummary(s);setMachines(m.machines||[]);
-   if(m.machines?.length){const h=await fetch(`${API}/analytics/machines/${m.machines[0].machine_id}/history?limit=50`);if(h.ok){const x=await h.json();setHistory((x.history||[]).reverse())}}
+   setSummary(s);\n   const liveMachines=(m.machines||[]).filter((x:any)=>String(x.machine_id).toLowerCase()!=="derived");\n   setMachines(liveMachines);\n   const preferred=liveMachines.find((x:any)=>x.machine_id==="M-001")||liveMachines[0];\n   if(preferred){\n    setSelectedMachineId(preferred.machine_id);\n    const h=await fetch(`${API}/analytics/machines/${encodeURIComponent(preferred.machine_id)}/history?limit=50`);\n    if(h.ok){const x=await h.json();setHistory((x.history||[]).reverse())}\n   }else{\n    setSelectedMachineId("");\n    setHistory([]);\n   }
   }catch(e){setError(e instanceof Error?e.message:"Connection error")}
  };
  useEffect(()=>{load();const t=setInterval(load,5000);return()=>clearInterval(t)},[]);
- const machine=machines[0],latest=history[history.length-1];
+ const machine=machines.find((x:any)=>x.machine_id===selectedMachineId)||machines[0];\n const latest=history[history.length-1];
  const [assessment,setAssessment]=useState<any>(null); const [question,setQuestion]=useState("What maintenance checks should be performed for this machine?"); const [ragAnswer,setRagAnswer]=useState<any>(null);
 
  const [assessing,setAssessing]=useState(false);
@@ -98,7 +98,7 @@ export default function App(){
     </div>
 
     
-     <button type="button" onClick={runAssessment} disabled={assessing||!latest}>{assessing?"Assessing...":"Run Assessment"}</button>
+     <button type="button" onClick={runAssessment} disabled={assessing}>{assessing?"Assessing...":"Run Assessment"}</button>
    </div>
 
    <div className="assistant-prompts"><small>AI ASSISTANT</small><div><button type="button" onClick={()=>setQuestion("Why is this machine considered low risk?")}>Why is this machine low risk?</button><button type="button" onClick={()=>setQuestion("What maintenance checks are relevant?")}>Maintenance checks</button><button type="button" onClick={()=>setQuestion("Which sensor values should I monitor?")}>Sensor guidance</button></div></div>
