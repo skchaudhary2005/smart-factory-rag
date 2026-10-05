@@ -352,8 +352,6 @@ class SensorIngester:
 
     async def start(self) -> None:
         """Start the MQTT ingestion loop using Paho MQTT."""
-        import paho.mqtt.client as mqtt
-
         self._running = True
         self._stats["start_time"] = time.time()
 
@@ -365,6 +363,8 @@ class SensorIngester:
             loop = asyncio.get_running_loop()
 
             try:
+                import paho.mqtt.client as mqtt
+
                 parsed = urlparse(self.mqtt_broker)
                 broker_host = parsed.hostname or ""
                 broker_port = parsed.port or (
