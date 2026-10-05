@@ -409,6 +409,19 @@ class SensorIngester:
                         f"Paho MQTT disconnected: reason_code={reason_code!r}"
                     )
 
+                def on_subscribe(_client, _userdata, _mid, reason_codes, _properties):
+                    logger.warning(
+                        f"Paho MQTT SUBACK: mid={_mid} reason_codes={reason_codes!r}"
+                    )
+                    if not reason_codes or any(int(code) >= 128 for code in reason_codes):
+                        logger.error(
+                            f"MQTT SUBSCRIBE NOT GRANTED: mid={_mid} reason_codes={reason_codes!r}"
+                        )
+                    else:
+                        logger.warning(
+                            f"MQTT SUBSCRIBE GRANTED: mid={_mid} reason_codes={reason_codes!r}"
+                        )
+
                 def on_message(_client, _userdata, message):
                     try:
                         topic = str(message.topic)
@@ -425,6 +438,7 @@ class SensorIngester:
 
                 client.on_connect = on_connect
                 client.on_disconnect = on_disconnect
+                client.on_subscribe = on_subscribe
                 client.on_message = on_message
 
                 logger.warning(
