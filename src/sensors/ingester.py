@@ -311,12 +311,28 @@ class SensorIngester:
             buffer.push(values, timestamp)
             self._stats["messages_received"] += 1
             # Industrial ML prediction
-            try:
-                from src.industrial_ai.predict import predict_failure
-                required = ["machine_type", "air_temperature", "process_temperature", "rotational_speed", "torque", "tool_wear"]
-                if all(key in data for key in required):
+            prediction = None
+            required = [
+                "machine_type",
+                "air_temperature",
+                "process_temperature",
+                "rotational_speed",
+                "torque",
+                "tool_wear",
+            ]
+            missing = [key for key in required if key not in data]
+            logger.warning(
+                f"INDUSTRIAL PREDICTION INPUT: equipment={equipment_id} "
+                f"required_present={not missing} missing={missing}"
+            )
+            if not missing:
+                try:
+                    from src.industrial_ai.predict import MODEL_PATH, predict_failure
+                    logger.warning(
+                        f"INDUSTRIAL MODEL CHECK: path={MODEL_PATH} exists={MODEL_PATH.exists()}"
+                    )
                     prediction = predict_failure(
-                        machine_type=data["machine_type"],
+                        machine_type=str(data["machine_type"]),
                         air_temperature=float(data["air_temperature"]),
                         process_temperature=float(data["process_temperature"]),
                         rotational_speed=float(data["rotational_speed"]),
@@ -325,17 +341,38 @@ class SensorIngester:
                     )
                     self._stats["last_prediction"] = prediction
                     self._stats["last_prediction_equipment"] = equipment_id
-                    logger.info(f"Industrial prediction for {equipment_id}: {prediction}")
-            except Exception as prediction_error:
-                logger.error(f"Industrial prediction failed for {equipment_id}: {prediction_error}")
-
-
+                    logger.warning(
+                        f"INDUSTRIAL PREDICTION SUCCESS: equipment={equipment_id} "
+                        f"result={prediction}"
+                    )
+                except Exception as prediction_error:
+                    logger.exception(
+                        f"INDUSTRIAL PREDICTION FAILED: equipment={equipment_id} "
+                        f"error={prediction_error}"
+                    )
+            else:
+                logger.warning(
+                    f"INDUSTRIAL PREDICTION SKIPPED: equipment={equipment_id} "
+                    f"missing={missing}"
+                )
 
             # Persist telemetry and ML prediction
             try:
-                save_sensor_reading(data, equipment_id, timestamp, self._stats.get("last_prediction") if self._stats.get("last_prediction_equipment") == equipment_id else None)
+                save_sensor_reading(
+                    data,
+                    equipment_id,
+                    timestamp,
+                    prediction,
+                )
+                logger.warning(
+                    f"DB PERSISTENCE SUCCESS: equipment={equipment_id} "
+                    f"prediction_saved={prediction is not None}"
+                )
             except Exception as db_error:
-                logger.error(f"TimescaleDB persistence failed for {equipment_id}: {db_error}")
+                logger.exception(
+                    f"DB PERSISTENCE FAILED: equipment={equipment_id} "
+                    f"error={db_error}"
+                )
 
             # Check for anomalies
             anomalies = self.detector.check(
