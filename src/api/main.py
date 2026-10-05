@@ -95,7 +95,21 @@ async def lifespan(app: FastAPI):
         topics=["factory/#"],
     )
 
-    ingestion_task = asyncio.create_task(_ingester.start())
+    ingestion_task = asyncio.create_task(_ingester.start(), name="mqtt-ingestion")
+
+    def _report_ingestion_task(task: asyncio.Task) -> None:
+        if task.cancelled():
+            logger.warning("MQTT ingestion task was cancelled")
+            return
+        exc = task.exception()
+        if exc is not None:
+            logger.error("MQTT ingestion task terminated unexpectedly: %r", exc)
+        else:
+            logger.warning("MQTT ingestion task exited unexpectedly")
+
+    ingestion_task.add_done_callback(_report_ingestion_task)
+    logger.info("MQTT ingestion task created and scheduled")
+    await asyncio.sleep(0)
 
     yield
 
