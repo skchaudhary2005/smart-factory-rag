@@ -351,11 +351,11 @@ class SensorIngester:
             logger.error(f"Failed to process message on {topic}: {e}")
 
     async def start(self) -> None:
-        """Start the MQTT ingestion loop using Paho MQTT."""
+        """Start MQTT ingestion with Paho running in a dedicated thread."""
         self._running = True
         self._stats["start_time"] = time.time()
 
-        logger.info(f"Starting sensor ingestion from {self.mqtt_broker}")
+        logger.warning(f"Starting sensor ingestion from {self.mqtt_broker}")
 
         while self._running:
             client = None
@@ -370,105 +370,87 @@ class SensorIngester:
                 broker_port = parsed.port or (
                     8883 if parsed.scheme in ("mqtts", "ssl") else 1883
                 )
-
                 mqtt_username = os.getenv("MQTT_USERNAME")
                 mqtt_password = os.getenv("MQTT_PASSWORD")
 
-                client = mqtt.Client(
-                    mqtt.CallbackAPIVersion.VERSION2
-                )
-
+                client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
                 if mqtt_username:
-                    client.username_pw_set(
-                        mqtt_username,
-                        mqtt_password,
-                    )
-
+                    client.username_pw_set(mqtt_username, mqtt_password)
                 if parsed.scheme in ("mqtts", "ssl"):
                     client.tls_set()
 
-                def on_connect(
-                    _client,
-                    _userdata,
-                    _flags,
-                    reason_code,
-                    _properties,
-                ):
+                connected = threading.Event()
+                connect_error: list[object] = []
+
+                def on_connect(_client, _userdata, _flags, reason_code, _properties):
+                    logger.warning(
+                        f"Paho MQTT CONNACK: reason_code={reason_code!r}"
+                    )
                     if reason_code == 0:
-                        logger.info(
-                            f"Paho MQTT connected to "
-                            f"{broker_host}:{broker_port}"
-                        )
-
+                        connected.set()
                         for topic in self.topics:
-                            result, _mid = _client.subscribe(
-                                topic,
-                                qos=1,
-                            )
-
+                            result, _mid = _client.subscribe(topic, qos=1)
                             if result == mqtt.MQTT_ERR_SUCCESS:
-                                logger.info(
-                                    f"Subscribed to MQTT topic: {topic}"
-                                )
+                                logger.warning(f"Subscribed to MQTT topic: {topic}")
                             else:
                                 logger.error(
-                                    f"Failed to subscribe to {topic}: "
-                                    f"result={result}"
+                                    f"Failed to subscribe to {topic}: result={result}"
                                 )
                     else:
+                        connect_error.append(reason_code)
+                        connected.set()
                         logger.error(
-                            f"Paho MQTT connection refused: "
-                            f"reason_code={reason_code}"
+                            f"Paho MQTT connection refused: reason_code={reason_code!r}"
                         )
 
-                def on_message(
-                    _client,
-                    _userdata,
-                    message,
-                ):
+                def on_disconnect(_client, _userdata, _disconnect_flags, reason_code, _properties):
+                    logger.warning(
+                        f"Paho MQTT disconnected: reason_code={reason_code!r}"
+                    )
+
+                def on_message(_client, _userdata, message):
                     try:
                         loop.call_soon_threadsafe(
                             queue.put_nowait,
-                            (
-                                str(message.topic),
-                                bytes(message.payload),
-                            ),
+                            (str(message.topic), bytes(message.payload)),
                         )
                     except Exception as callback_error:
-                        logger.error(
-                            f"MQTT message callback error: "
-                            f"{callback_error}"
-                        )
+                        logger.error(f"MQTT message callback error: {callback_error}")
 
                 client.on_connect = on_connect
+                client.on_disconnect = on_disconnect
                 client.on_message = on_message
 
                 logger.warning(
                     f"MQTT CONNECT ATTEMPT: {broker_host}:{broker_port}"
                 )
 
-                # Paho's connect() is blocking. Run it off the asyncio
-                # event loop so Render/Uvicorn remains responsive while the
-                # external EMQX TLS connection is established.
-                await asyncio.wait_for(
-                    asyncio.to_thread(
-                        client.connect,
-                        broker_host,
-                        broker_port,
-                        60,
-                    ),
-                    timeout=20.0,
-                )
-
-                logger.warning(
-                    f"MQTT TCP/TLS CONNECT RETURNED: {broker_host}:{broker_port}"
+                await asyncio.to_thread(
+                    client.connect,
+                    broker_host,
+                    broker_port,
+                    60,
                 )
 
                 client.loop_start()
+                logger.warning("Paho MQTT network loop started")
 
-                logger.warning(
-                    "Paho MQTT network loop started"
-                )
+                try:
+                    await asyncio.wait_for(
+                        asyncio.to_thread(connected.wait),
+                        timeout=15.0,
+                    )
+                except asyncio.TimeoutError:
+                    logger.error(
+                        "MQTT CONNACK TIMEOUT: broker TCP/TLS accepted, "
+                        "but no MQTT CONNACK callback arrived within 15s"
+                    )
+                    raise RuntimeError("MQTT CONNACK timeout")
+
+                if connect_error:
+                    raise RuntimeError(
+                        f"MQTT connection refused: {connect_error[0]!r}"
+                    )
 
                 while self._running:
                     try:
@@ -476,21 +458,14 @@ class SensorIngester:
                             queue.get(),
                             timeout=1.0,
                         )
-
-                        await self._process_message(
-                            topic,
-                            payload,
-                        )
-
+                        await self._process_message(topic, payload)
                     except asyncio.TimeoutError:
                         continue
 
             except Exception as e:
                 logger.error(
-                    f"MQTT connection error: {e}. "
-                    f"Reconnecting in 5s..."
+                    f"MQTT connection error: {e}. Reconnecting in 5s..."
                 )
-
                 await asyncio.sleep(5)
 
             finally:
@@ -499,15 +474,12 @@ class SensorIngester:
                         client.loop_stop()
                     except Exception:
                         pass
-
                     try:
                         client.disconnect()
                     except Exception:
                         pass
+                    logger.info("Paho MQTT client disconnected")
 
-                    logger.info(
-                        "Paho MQTT client disconnected"
-                    )
     async def stop(self) -> None:
         """Gracefully stop ingestion."""
         self._running = False
