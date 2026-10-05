@@ -69,14 +69,38 @@ export default function App(){
     question
    };
 
-   // RAG is optional enrichment. A RAG/network failure must never block the
-   // actual industrial maintenance assessment.
+   // Run the industrial assessment FIRST. RAG is optional enrichment and
+   // must never delay or block the actual assessment result.
+   const response=await fetch(
+    `${API}/industrial/maintenance-assessment`,
+    {
+     method:"POST",
+     headers:{"Content-Type":"application/json"},
+     body:JSON.stringify(payload),
+    }
+   );
+
+   if(!response.ok){
+    let detail="";
+    try{ detail=await response.text(); }catch{}
+    throw Error(`Maintenance assessment failed (${response.status})${detail?`: ${detail.slice(0,180)}`:""}`);
+   }
+
+   const assessmentResult=await response.json();
+   setAssessment(assessmentResult);
+
+   // RAG is optional enrichment. Give it a short timeout so a slow RAG
+   // service can never prevent the assessment UI from showing a result.
    try{
+    const controller=new AbortController();
+    const timer=window.setTimeout(()=>controller.abort(),5000);
     const ragResponse=await fetch(`${API}/query`,{
      method:"POST",
      headers:{"Content-Type":"application/json"},
-     body:JSON.stringify({question,top_k:3,rerank:false})
+     body:JSON.stringify({question,top_k:3,rerank:false}),
+     signal:controller.signal,
     });
+    window.clearTimeout(timer);
     if(ragResponse.ok){
      setRagAnswer(await ragResponse.json());
     }else{
@@ -85,21 +109,6 @@ export default function App(){
    }catch{
     setRagAnswer(null);
    }
-
-   const response=await fetch(
-    `${API}/industrial/maintenance-assessment`,
-    {
-     method:"POST",
-     headers:{"Content-Type":"application/json"},
-     body:JSON.stringify(payload)
-    }
-   );
-
-   if(!response.ok){
-    throw Error("Maintenance assessment failed");
-   }
-
-   setAssessment(await response.json());
   }catch(e){
    setError(e instanceof Error?e.message:"Maintenance assessment failed");
   }finally{
