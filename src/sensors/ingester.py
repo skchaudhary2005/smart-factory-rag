@@ -413,7 +413,16 @@ class SensorIngester:
                     logger.warning(
                         f"Paho MQTT SUBACK: mid={_mid} reason_codes={reason_codes!r}"
                     )
-                    if not reason_codes or any(int(code) >= 128 for code in reason_codes):
+                    if not reason_codes:
+                        logger.error(
+                            f"MQTT SUBSCRIBE NOT GRANTED: mid={_mid} reason_codes={reason_codes!r}"
+                        )
+                        return
+                    denied = [
+                        code for code in reason_codes
+                        if getattr(code, "value", 0) >= 128
+                    ]
+                    if denied:
                         logger.error(
                             f"MQTT SUBSCRIBE NOT GRANTED: mid={_mid} reason_codes={reason_codes!r}"
                         )
