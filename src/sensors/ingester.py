@@ -411,9 +411,14 @@ class SensorIngester:
 
                 def on_message(_client, _userdata, message):
                     try:
+                        topic = str(message.topic)
+                        payload = bytes(message.payload)
+                        logger.warning(
+                            f"MQTT MESSAGE RECEIVED: topic={topic} qos={message.qos} payload_bytes={len(payload)}"
+                        )
                         loop.call_soon_threadsafe(
                             queue.put_nowait,
-                            (str(message.topic), bytes(message.payload)),
+                            (topic, payload),
                         )
                     except Exception as callback_error:
                         logger.error(f"MQTT message callback error: {callback_error}")
@@ -459,7 +464,9 @@ class SensorIngester:
                             queue.get(),
                             timeout=1.0,
                         )
+                        logger.warning(f"MQTT MESSAGE PROCESSING: topic={topic} payload_bytes={len(payload)}")
                         await self._process_message(topic, payload)
+                        logger.warning(f"MQTT MESSAGE PROCESSED: topic={topic}")
                     except asyncio.TimeoutError:
                         continue
 
