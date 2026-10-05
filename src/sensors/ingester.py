@@ -443,20 +443,30 @@ class SensorIngester:
                 client.on_connect = on_connect
                 client.on_message = on_message
 
-                logger.info(
-                    f"Connecting to MQTT broker "
-                    f"{broker_host}:{broker_port}"
+                logger.warning(
+                    f"MQTT CONNECT ATTEMPT: {broker_host}:{broker_port}"
                 )
 
-                client.connect(
-                    broker_host,
-                    broker_port,
-                    keepalive=60,
+                # Paho's connect() is blocking. Run it off the asyncio
+                # event loop so Render/Uvicorn remains responsive while the
+                # external EMQX TLS connection is established.
+                await asyncio.wait_for(
+                    asyncio.to_thread(
+                        client.connect,
+                        broker_host,
+                        broker_port,
+                        60,
+                    ),
+                    timeout=20.0,
+                )
+
+                logger.warning(
+                    f"MQTT TCP/TLS CONNECT RETURNED: {broker_host}:{broker_port}"
                 )
 
                 client.loop_start()
 
-                logger.info(
+                logger.warning(
                     "Paho MQTT network loop started"
                 )
 
