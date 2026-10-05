@@ -22,11 +22,23 @@ export default function App(){
    const [a,b]=await Promise.all([fetch(`${API}/analytics/summary`),fetch(`${API}/analytics/machines`)]);
    if(!a.ok||!b.ok)throw Error("Backend API unavailable");
    const s=await a.json(),m=await b.json();
-   setSummary(s);\n   const liveMachines=(m.machines||[]).filter((x:any)=>String(x.machine_id).toLowerCase()!=="derived");\n   setMachines(liveMachines);\n   const preferred=liveMachines.find((x:any)=>x.machine_id==="M-001")||liveMachines[0];\n   if(preferred){\n    setSelectedMachineId(preferred.machine_id);\n    const h=await fetch(`${API}/analytics/machines/${encodeURIComponent(preferred.machine_id)}/history?limit=50`);\n    if(h.ok){const x=await h.json();setHistory((x.history||[]).reverse())}\n   }else{\n    setSelectedMachineId("");\n    setHistory([]);\n   }
+   setSummary(s);
+   const liveMachines=(m.machines||[]).filter((x:any)=>String(x.machine_id).toLowerCase()!=="derived");
+   setMachines(liveMachines);
+   const preferred=liveMachines.find((x:any)=>x.machine_id==="M-001")||liveMachines[0];
+   if(preferred){
+    setSelectedMachineId(preferred.machine_id);
+    const h=await fetch(`${API}/analytics/machines/${encodeURIComponent(preferred.machine_id)}/history?limit=50`);
+    if(h.ok){const x=await h.json();setHistory((x.history||[]).reverse())}
+   }else{
+    setSelectedMachineId("");
+    setHistory([]);
+   }
   }catch(e){setError(e instanceof Error?e.message:"Connection error")}
  };
  useEffect(()=>{load();const t=setInterval(load,5000);return()=>clearInterval(t)},[]);
- const machine=machines.find((x:any)=>x.machine_id===selectedMachineId)||machines[0];\n const latest=history[history.length-1];
+ const machine=machines.find((x:any)=>x.machine_id===selectedMachineId)||machines[0];
+ const latest=history[history.length-1];
  const [assessment,setAssessment]=useState<any>(null); const [question,setQuestion]=useState("What maintenance checks should be performed for this machine?"); const [ragAnswer,setRagAnswer]=useState<any>(null);
 
  const [assessing,setAssessing]=useState(false);
