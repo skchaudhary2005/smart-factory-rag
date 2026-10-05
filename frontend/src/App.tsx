@@ -28,8 +28,15 @@ export default function App(){
    const preferred=liveMachines.find((x:any)=>x.machine_id==="M-001")||liveMachines[0];
    if(preferred){
     setSelectedMachineId(preferred.machine_id);
-    const h=await fetch(`${API}/analytics/machines/${encodeURIComponent(preferred.machine_id)}/history?limit=50`);
-    if(h.ok){const x=await h.json();setHistory((x.history||[]).reverse())}
+    try{
+     const h=await fetch(`${API}/analytics/machines/${encodeURIComponent(preferred.machine_id)}/history?limit=50`);
+     if(h.ok){
+      const x=await h.json();
+      setHistory((x.history||[]).reverse());
+     }
+    }catch{
+     setHistory([]);
+    }
    }else{
     setSelectedMachineId("");
     setHistory([]);
@@ -62,7 +69,24 @@ export default function App(){
     question
    };
 
-   const ragResponse=await fetch(`${API}/query`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question,top_k:3,rerank:false})}); if(ragResponse.ok){setRagAnswer(await ragResponse.json());}else{setRagAnswer(null);} const response=await fetch(
+   // RAG is optional enrichment. A RAG/network failure must never block the
+   // actual industrial maintenance assessment.
+   try{
+    const ragResponse=await fetch(`${API}/query`,{
+     method:"POST",
+     headers:{"Content-Type":"application/json"},
+     body:JSON.stringify({question,top_k:3,rerank:false})
+    });
+    if(ragResponse.ok){
+     setRagAnswer(await ragResponse.json());
+    }else{
+     setRagAnswer(null);
+    }
+   }catch{
+    setRagAnswer(null);
+   }
+
+   const response=await fetch(
     `${API}/industrial/maintenance-assessment`,
     {
      method:"POST",
