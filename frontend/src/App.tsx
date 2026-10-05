@@ -103,7 +103,7 @@ export default function App(){
 
    <div className="assistant-prompts"><small>AI ASSISTANT</small><div><button type="button" onClick={()=>setQuestion("Why is this machine considered low risk?")}>Why is this machine low risk?</button><button type="button" onClick={()=>setQuestion("What maintenance checks are relevant?")}>Maintenance checks</button><button type="button" onClick={()=>setQuestion("Which sensor values should I monitor?")}>Sensor guidance</button></div></div>
 <div className="copilot-input"><input type="text" value={question} onChange={(e)=>setQuestion(e.target.value)} placeholder="Ask the maintenance copilot about this machine..." /><button type="button" onClick={runAssessment} disabled={assessing||!latest}>{assessing?"Analyzing...":"Analyze Machine"}</button></div>
-       {ragAnswer && <div className="rag-result"><small>RAG KNOWLEDGE</small><b>{ragAnswer.answer}</b><span>Confidence: {(Number(ragAnswer.confidence||0)*100).toFixed(1)}%</span>{Array.isArray(ragAnswer.sources)&&ragAnswer.sources.length>0&&<div className="rag-sources">{ragAnswer.sources.map((src:any,i:number)=><div key={i}><small>Source {i+1}</small><span>{src.document} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· p.{src.page}</span></div>)}</div>}</div>}
+       {ragAnswer && <div className="rag-result"><small>RAG KNOWLEDGE</small><b>{ragAnswer.answer}</b><span>Confidence: {(Number(ragAnswer.confidence||0)*100).toFixed(1)}%</span>{Array.isArray(ragAnswer.sources)&&ragAnswer.sources.length>0&&<div className="rag-sources">{ragAnswer.sources.map((src:any,i:number)=><div key={i}><small>Source {i+1}</small><span>{src.document} · p.{src.page}</span></div>)}</div>}</div>}
 
 {!assessment && (
     <div className="status">
@@ -124,7 +124,7 @@ export default function App(){
        <small>FAILURE ASSESSMENT</small>
        <b>
         {assessment.failure_assessment?.prediction}
-        {" ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· "}
+        {" · "}
         {Number(
          assessment.failure_assessment?.failure_probability_percent||0
         ).toFixed(2)}%
@@ -165,7 +165,7 @@ export default function App(){
        {assessment.evidence.map((e:any,i:number)=>(
         <div key={i} style={{marginTop:8}}>
          <b>Page {e.page}</b>
-         {" ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â "}
+         {" — "}
          {e.chunk_text}
         </div>
        ))}
@@ -179,12 +179,12 @@ export default function App(){
 
   <section className="grid lower">
    <div className="panel"><small>RISK DISTRIBUTION</small><h2>Factory Health</h2><Row name="Low risk" value={summary?.low_risk_readings??0} cls="low"/><Row name="Medium risk" value={summary?.medium_risk_readings??0} cls="medium"/><Row name="High risk" value={summary?.high_risk_readings??0} cls="high"/></div>
-   <div className="panel"><small>PREDICTIVE MAINTENANCE</small><h2>AI Model Status</h2><Status name="Failure Model" value="RandomForest ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· rf-industrial-v1"/><Status name="RUL Model" value="RandomForest ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· rf-rul-v1"/><Status name="RAG Engine" value="FAISS + BM25 ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Ready"/><Status name="Sensor Pipeline" value="MQTT ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ TimescaleDB ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Live"/></div>
+   <div className="panel"><small>PREDICTIVE MAINTENANCE</small><h2>AI Model Status</h2><Status name="Failure Model" value="RandomForest · rf-industrial-v1"/><Status name="RUL Model" value="RandomForest · rf-rul-v1"/><Status name="RAG Engine" value="FAISS + BM25 · Ready"/><Status name="Sensor Pipeline" value="MQTT → TimescaleDB · Live"/></div>
   </section>
   <Suspense fallback={<div className={'status'}>Loading analytics...</div>}><Analytics summary={summary} history={history}/></Suspense>
   <FactoryArchitecture/>
   <Factory3D/>
-  <footer>Smart Factory RAG ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Industrial AI Monitoring</footer>
+  <footer>Smart Factory RAG · Industrial AI Monitoring</footer>
  </div>
 }
 function Card({icon,title,value}:{icon:any,title:string,value:any}){return <div className="stat">{icon}<div><small>{title}</small><strong>{value}</strong></div></div>}
