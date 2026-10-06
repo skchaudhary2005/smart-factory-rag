@@ -24,9 +24,6 @@ export default function FutureIntelligence({ machineId, language, question = "",
   const [priority, setPriority] = useState("MEDIUM");
   const [date, setDate] = useState("");
   const [action, setAction] = useState("Maintenance inspection");
-  const [simRpm, setSimRpm] = useState("");
-  const [simTorque, setSimTorque] = useState("");
-  const [simResult, setSimResult] = useState<any>(null);
 
   useEffect(() => {
     if (!machineId) return;
@@ -70,21 +67,6 @@ export default function FutureIntelligence({ machineId, language, question = "",
         body: JSON.stringify({ machine_id: machineId, priority, action, scheduled_for: new Date(date).toISOString() })
       });
       if (r.ok) setSaved(t.scheduleBtn);
-    } catch {}
-  };
-
-  const simulate = async () => {
-    if (!machineId) return;
-    try {
-      const r = await fetch(API + "/future/digital-twin/simulate", {
-        method: "POST", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
-          machine_id: machineId,
-          rotational_speed: simRpm ? Number(simRpm) : undefined,
-          torque: simTorque ? Number(simTorque) : undefined
-        })
-      });
-      if (r.ok) setSimResult(await r.json());
     } catch {}
   };
 
