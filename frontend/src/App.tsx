@@ -101,7 +101,7 @@ export default function App(){
     const ragResponse=await fetch(`${API}/query`,{
      method:"POST",
      headers:{"Content-Type":"application/json"},
-     body:JSON.stringify({question,top_k:3,rerank:false}),
+     body:JSON.stringify({question,top_k:3,rerank:false,language:language === "auto" ? undefined : language}),
      signal:controller.signal,
     });
     window.clearTimeout(timer);
