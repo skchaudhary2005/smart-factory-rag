@@ -27,7 +27,7 @@ export default function App(){
    setSummary(s);
    const liveMachines=(m.machines||[]).filter((x:any)=>String(x.machine_id).toLowerCase()!=="derived");
    setMachines(liveMachines);
-   const preferred=liveMachines.find((x:any)=>x.machine_id==="M-001")||liveMachines[0];
+   const preferred=liveMachines.find((x:any)=>x.machine_id===selectedMachineId)||liveMachines.find((x:any)=>x.machine_id==="M-001")||liveMachines[0];
    if(preferred){
     setSelectedMachineId(preferred.machine_id);
     try{
@@ -121,7 +121,7 @@ export default function App(){
  };
 
  return <div className="app">
-  <header><div><div className="eyebrow">INDUSTRIAL AI PLATFORM</div><h1>Smart Factory Monitor</h1><p>Predictive maintenance & real-time machine intelligence</p></div><div style={{display:"flex",gap:8,alignItems:"center"}}><select aria-label="AI language" value={language} onChange={e=>setLanguage(e.target.value as Language)}><option value="auto">Auto / Hinglish</option><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select><button onClick={load}><RefreshCw size={16}/> Refresh</button></div></header>
+  <header><div><div className="eyebrow">INDUSTRIAL AI PLATFORM</div><h1>Smart Factory Monitor</h1><p>Predictive maintenance & real-time machine intelligence</p></div><div style={{display:"flex",gap:8,alignItems:"center"}}><select aria-label="Machine" value={selectedMachineId} onChange={e=>setSelectedMachineId(e.target.value)}>{liveMachineOptions(machines).map((id:string)=><option key={id} value={id}>{id}</option>)}</select><select aria-label="AI language" value={language} onChange={e=>setLanguage(e.target.value as Language)}><option value="auto">Auto / Hinglish</option><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select><button onClick={load}><RefreshCw size={16}/> Refresh</button></div></header>
   {error&&<div className="error">{error}</div>}
   <section className="stats">
    <Card icon={<Activity/>} title="Telemetry Readings" value={summary?.readings??0}/>
@@ -240,6 +240,7 @@ function Card({icon,title,value}:{icon:any,title:string,value:any}){return <div 
 function Metric({icon,name,value}:{icon:any,name:string,value:string}){return <div>{icon}<small>{name}</small><b>{value}</b></div>}
 function Row({name,value,cls}:{name:string,value:number,cls:string}){return <div className="row"><i className={cls}></i><span>{name}</span><b>{value}</b></div>}
 function Status({name,value}:{name:string,value:string}){return <div className="status"><small>{name}</small><b>{value}</b></div>}
+function liveMachineOptions(items:any[]){return items.map((x:any)=>String(x.machine_id)).filter((id:string)=>id && id.toLowerCase()!=="derived")}
 
 
 
