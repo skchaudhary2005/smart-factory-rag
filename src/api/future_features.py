@@ -234,3 +234,40 @@ def edge_status():
         "recommended_runtime": "ONNX/TFLite/TensorRT on industrial edge gateway",
         "note": "Cloud inference remains unchanged; this endpoint exposes an edge-compatible contract without changing the production path.",
     }
+
+@router.get("/rul/live/{machine_id}")
+def live_rul(machine_id: str):
+    with psycopg.connect(DATABASE_URL) as conn:
+        row = conn.execute(
+            """SELECT time, telemetry_payload FROM sensor_readings
+               WHERE machine_id=%s AND telemetry_payload IS NOT NULL
+               ORDER BY time DESC LIMIT 1""",
+            (machine_id,),
+        ).fetchone()
+    if not row:
+        return {"available": False, "reason": "No raw telemetry payload is available for this machine."}
+    payload = row[1] or {}
+    sensors = payload.get("sensors") or payload.get("cmaps_sensors")
+    if not isinstance(sensors, list) or len(sensors) != 21:
+        return {
+            "available": False,
+            "reason": "Live telemetry does not contain the 21 C-MAPSS sensor features required by the RUL model.",
+            "received_sensor_count": len(sensors) if isinstance(sensors, list) else 0,
+            "timestamp": row[0],
+        }
+    result = predict_rul(
+        float(payload.get("op_setting_1", 0)),
+        float(payload.get("op_setting_2", 0)),
+        float(payload.get("op_setting_3", 0)),
+        [float(x) for x in sensors],
+    )
+    return {"available": True, "machine_id": machine_id, "timestamp": row[0], **result}
+
+@router.get("/model-registry")
+def model_registry():
+    return {
+        "active": {"failure": "rf-industrial-v1", "rul": "rf-rul-v1", "status": "production"},
+        "challenger_policy": "New models must be evaluated on ground-truth labeled failures before promotion.",
+        "candidate_models": ["LightGBM", "XGBoost", "LSTM", "Transformer"],
+        "promotion_guard": "No automatic model replacement is enabled; the current production model remains unchanged until a validated challenger is available.",
+    }
