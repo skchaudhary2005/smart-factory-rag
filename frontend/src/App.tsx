@@ -233,6 +233,7 @@ export default function App(){
   <Suspense fallback={<div className={'status'}>Loading analytics...</div>}><Analytics summary={summary} history={history}/></Suspense>
   <FactoryArchitecture/>
   <Factory3D/>
+  <FutureIntelligence machineId={selectedMachineId} language={language === "auto" ? "hinglish" : language} question={question} assessment={assessment}/>
   <footer>Smart Factory RAG · Industrial AI Monitoring</footer>
  </div>
 }
