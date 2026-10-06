@@ -308,3 +308,33 @@ def digital_twin_simulate(request: SimulationRequest):
         "inputs": values,
         "predicted_result": result,
     }
+
+@router.get("/drift/{machine_id}")
+def drift(machine_id: str, recent: int = 20, baseline: int = 100):
+    recent = max(5, min(recent, 100))
+    baseline = max(recent + 5, min(baseline, 500))
+    with psycopg.connect(DATABASE_URL) as conn:
+        rows = conn.execute(
+            """SELECT air_temperature, process_temperature, rotational_speed, torque, tool_wear
+               FROM sensor_readings WHERE machine_id=%s
+               ORDER BY time DESC LIMIT %s""",
+            (machine_id, baseline),
+        ).fetchall()
+    if len(rows) < recent + 5:
+        return {"machine_id": machine_id, "ready": False, "sample_count": len(rows)}
+    recent_rows, base_rows = rows[:recent], rows[recent:]
+    fields = ["air_temperature", "process_temperature", "rotational_speed", "torque", "tool_wear"]
+    report = {}
+    for i, name in enumerate(fields):
+        recent_vals = [float(x[i]) for x in recent_rows]
+        base_vals = [float(x[i]) for x in base_rows]
+        base_mean = mean(base_vals)
+        base_sd = pstdev(base_vals)
+        shift = abs(mean(recent_vals) - base_mean) / max(base_sd, 1e-9)
+        report[name] = {
+            "recent_mean": round(mean(recent_vals), 4),
+            "baseline_mean": round(base_mean, 4),
+            "standardized_shift": round(shift, 3),
+            "drift": shift >= 2.0,
+        }
+    return {"machine_id": machine_id, "ready": True, "report": report}
