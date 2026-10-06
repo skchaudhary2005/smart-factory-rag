@@ -24,6 +24,7 @@ from typing import Any, Callable, Coroutine, Optional
 import numpy as np
 import os
 import psycopg
+from psycopg.types.json import Jsonb
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +40,11 @@ def save_sensor_reading(data: dict, equipment_id: str, timestamp: float, predict
                 time, machine_id, machine_type,
                 air_temperature, process_temperature,
                 rotational_speed, torque, tool_wear,
-                failure_probability, prediction, risk_level, model_version
+                failure_probability, prediction, risk_level, model_version, telemetry_payload
             ) VALUES (
                 to_timestamp(%s), %s, %s,
                 %s, %s, %s, %s, %s,
-                %s, %s, %s, %s
+                %s, %s, %s, %s, %s
             )
             """,
             (
@@ -59,6 +60,7 @@ def save_sensor_reading(data: dict, equipment_id: str, timestamp: float, predict
                 prediction.get("prediction") if prediction else None,
                 prediction.get("risk_level") if prediction else None,
                 prediction.get("model_version") if prediction else None,
+                Jsonb(data),
             ),
         )
 

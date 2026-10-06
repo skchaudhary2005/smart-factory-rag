@@ -53,6 +53,7 @@ class AnswerDeps:
 
     question: str
     chunks: list[dict] = field(default_factory=list)
+    language: str | None = None
 
 
 _PERSONA = (
@@ -90,8 +91,9 @@ answer_agent = Agent(
 @answer_agent.instructions
 def _inject_context(ctx: RunContext[AnswerDeps]) -> str:
     chunks = ctx.deps.chunks
+    language_hint = f"Respond in {ctx.deps.language}. " if ctx.deps.language else "Infer the response language from the question. "
     if not chunks:
-        return "No context chunks were retrieved. Set insufficient_context=true and cite nothing."
+        return language_hint + "No context chunks were retrieved. Set insufficient_context=true and cite nothing."
     listing = "\n\n".join(
         f"[Source {i + 1}: {c.get('document', 'unknown')}, p.{c.get('page', 0)}]\n{c.get('chunk_text', '')}"
         for i, c in enumerate(chunks)
@@ -139,8 +141,9 @@ async def run_answer_agent(
     chunks: list[dict],
     *,
     model: str = MODEL,
+    language: str | None = None,
 ) -> GroundedAnswer:
     """Run the grounded answer agent over the retrieved chunks."""
-    deps = AnswerDeps(question=question, chunks=chunks)
+    deps = AnswerDeps(question=question, chunks=chunks, language=language)
     res = await answer_agent.run(question, deps=deps, model=_build_model(model))
     return res.output

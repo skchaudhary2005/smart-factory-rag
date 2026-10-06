@@ -4,6 +4,7 @@ SmartFactory-RAG API Ã¢â‚¬â€ Unified gateway for RAG, predictions, an
 
 from __future__ import annotations
 from src.api.analytics import router as analytics_router, init_db
+from src.api.future_features import router as future_router, init_future_db, detect_language
 import asyncio
 
 import logging
@@ -25,7 +26,7 @@ class QueryRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=2000)
     top_k: int = Field(default=5, ge=1, le=20)
     rerank: bool = False
-    language: Optional[str] = None  # "el", "en", or auto-detect
+    language: Optional[str] = None  # "en", "hi", "hinglish", or auto-detect
 
 class QueryResponse(BaseModel):
     answer: str
@@ -75,6 +76,7 @@ async def lifespan(app: FastAPI):
     logger.warning("Initializing SmartFactory-RAG components...")
     try:
         init_db()
+        init_future_db()
         logger.info("Analytics database initialized")
     except Exception as e:
         logger.warning(f"Analytics database initialization failed: {e}")
@@ -173,6 +175,7 @@ async def query_documents(request: QueryRequest):
         question=request.question,
         top_k=request.top_k,
         rerank=request.rerank,
+        language=request.language or detect_language(request.question),
     )
 
     return QueryResponse(
@@ -345,6 +348,7 @@ class MaintenanceAssessmentRequest(BaseModel):
     op_setting_3: float
     sensors: list[float]
     question: str = 'What maintenance checks are relevant for this machine based on the current condition?'
+    language: str | None = None
 
 
 class MaintenanceAssessmentResponse(BaseModel):
@@ -390,14 +394,41 @@ async def industrial_maintenance_assessment(request: MaintenanceAssessmentReques
 
         alert = {'active': overall_risk in ('MEDIUM','HIGH'), 'severity': overall_risk, 'message': ('Immediate maintenance inspection recommended.' if overall_risk == 'HIGH' else 'Maintenance inspection should be scheduled.' if overall_risk == 'MEDIUM' else 'No immediate maintenance alert.')}
 
+        detected_language = request.language or detect_language(request.question)
         evidence = []
         if _rag_engine is not None:
             try:
-                rag = await asyncio.wait_for(asyncio.to_thread(_rag_engine.query, request.question, top_k=3, rerank=False), timeout=5.0)
+                rag = await asyncio.wait_for(asyncio.to_thread(_rag_engine.query, request.question, top_k=3, rerank=False, language=detected_language), timeout=5.0)
                 evidence = [{'document': x.document, 'page': x.page, 'paragraph': x.paragraph, 'score': x.score, 'chunk_text': x.chunk_text} for x in rag.sources[:3]]
             except Exception as exc:
                 logger.warning('Maintenance RAG evidence unavailable: %s', exc)
-        return {'overall_risk': overall_risk, 'failure_assessment': failure, 'rul_assessment': rul, 'maintenance_action': action, 'risk_explanation': risk_explanation, 'alert': alert, 'evidence': evidence}
+        localized = {
+            'hi': {
+                'action_low': 'सामान्य रखरखाव के साथ मशीन की निगरानी जारी रखें।',
+                'action_medium': 'रखरखाव निरीक्षण निर्धारित करें और मशीन की स्थिति पर करीबी निगरानी रखें।',
+                'action_high': 'तुरंत निरीक्षण को प्राथमिकता दें और मशीन को जारी रखने से पहले संबंधित सुरक्षा/मोटर घटकों की जांच करें।',
+                'risk_low': 'वर्तमान ऑपरेटिंग परिस्थितियों में failure risk कम है। सामान्य monitoring जारी रखें।',
+                'risk_medium': 'Failure risk मध्यम है। temperature, rotational speed, torque और tool wear में बदलाव पर नजर रखें।',
+                'risk_high': 'Failure risk अधिक है। मशीन की स्थिति की तुरंत जांच करना उचित है।',
+            },
+            'hinglish': {
+                'action_low': 'Normal maintenance ke saath machine ko monitor karte rahiye.',
+                'action_medium': 'Maintenance inspection schedule karo aur machine ko closely monitor karo.',
+                'action_high': 'Inspection ko priority do aur operation continue karne se pehle relevant motor/safety components check karo.',
+                'risk_low': 'Current operating conditions mein failure risk low hai. Normal monitoring continue karo.',
+                'risk_medium': 'Failure risk moderate hai. Temperature, RPM, torque aur tool wear mein changes monitor karo.',
+                'risk_high': 'Failure risk high hai. Machine ki condition ko immediately inspect karna chahiye.',
+            },
+        }
+        if detected_language in localized:
+            lang = localized[detected_language]
+            if overall_risk == 'HIGH':
+                action, risk_explanation = lang['action_high'], lang['risk_high']
+            elif overall_risk == 'MEDIUM':
+                action, risk_explanation = lang['action_medium'], lang['risk_medium']
+            else:
+                action, risk_explanation = lang['action_low'], lang['risk_low']
+        return {'overall_risk': overall_risk, 'failure_assessment': failure, 'rul_assessment': rul, 'maintenance_action': action, 'risk_explanation': risk_explanation, 'alert': alert, 'evidence': evidence, 'language': detected_language}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     except FileNotFoundError as exc:
@@ -407,3 +438,4 @@ async def industrial_maintenance_assessment(request: MaintenanceAssessmentReques
 
 
 app.include_router(analytics_router)
+app.include_router(future_router)

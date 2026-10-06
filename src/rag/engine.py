@@ -205,6 +205,7 @@ class RAGEngine:
         top_k: int = 5,
         rerank: bool = True,
         expand_query: bool = True,
+        language: str | None = None,
     ) -> RAGResult:
         """
         Query the manufacturing knowledge base.
@@ -246,7 +247,7 @@ class RAGEngine:
 
         # Generation phase â€” bounded judgement over the retrieved chunks (Pydantic AI).
         t1 = time.perf_counter()
-        grounded = self._answer(question, candidates)
+        grounded = self._answer(question, candidates, language=language)
         generation_time = (time.perf_counter() - t1) * 1000
 
         # Build traceable sources
@@ -277,7 +278,7 @@ class RAGEngine:
             },
         )
 
-    def _answer(self, question: str, candidates: list[dict]):
+    def _answer(self, question: str, candidates: list[dict], language: str | None = None):
         """Run the typed Pydantic AI answer agent, safely from sync or async callers.
 
         `query()` is sync but is invoked from an async FastAPI endpoint, so an event loop may
@@ -287,7 +288,7 @@ class RAGEngine:
         from .answer import GroundedAnswer, run_answer_agent
 
         async def _coro():
-            return await run_answer_agent(question, candidates, model=self.model)
+            return await run_answer_agent(question, candidates, model=self.model, language=language)
 
         try:
             import asyncio

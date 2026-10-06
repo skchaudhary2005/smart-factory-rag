@@ -20,9 +20,11 @@ def init_db():
                 failure_probability DOUBLE PRECISION,
                 prediction TEXT,
                 risk_level TEXT,
-                model_version TEXT
+                model_version TEXT,
+                telemetry_payload JSONB
             )
         """)
+        conn.execute("ALTER TABLE sensor_readings ADD COLUMN IF NOT EXISTS telemetry_payload JSONB")
         conn.commit()
 
 
