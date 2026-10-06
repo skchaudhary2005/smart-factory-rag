@@ -10,7 +10,8 @@ import psycopg
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from src.industrial_ai.rul_predict import predict_rul\nfrom src.industrial_ai.predict import predict_failure
+from src.industrial_ai.rul_predict import predict_rul
+from src.industrial_ai.predict import predict_failure
 
 router = APIRouter(prefix="/future", tags=["Future Intelligence"])
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://factory:factory@postgres:5432/smartfactory")
