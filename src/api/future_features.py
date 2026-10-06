@@ -310,6 +310,25 @@ def digital_twin_simulate(request: SimulationRequest):
         "predicted_result": result,
     }
 
+@router.get("/digital-twin/simulate")
+def digital_twin_simulate_get(
+    machine_id: str,
+    air_temperature: float | None = None,
+    process_temperature: float | None = None,
+    rotational_speed: float | None = None,
+    torque: float | None = None,
+    tool_wear: float | None = None,
+):
+    """GET fallback for browser clients; avoids an unnecessary CORS preflight."""
+    return digital_twin_simulate(SimulationRequest(
+        machine_id=machine_id,
+        air_temperature=air_temperature,
+        process_temperature=process_temperature,
+        rotational_speed=rotational_speed,
+        torque=torque,
+        tool_wear=tool_wear,
+    ))
+
 @router.get("/drift/{machine_id}")
 def drift(machine_id: str, recent: int = 20, baseline: int = 100):
     recent = max(5, min(recent, 100))
