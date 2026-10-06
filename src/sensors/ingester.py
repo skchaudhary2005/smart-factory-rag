@@ -323,15 +323,15 @@ class SensorIngester:
                 "tool_wear",
             ]
             missing = [key for key in required if key not in data]
-            logger.warning(
-                f"INDUSTRIAL PREDICTION INPUT: equipment={equipment_id} "
-                f"required_present={not missing} missing={missing}"
+            logger.debug(
+                "Industrial prediction input: equipment=%s required_present=%s missing=%s",
+                equipment_id, not missing, missing,
             )
             if not missing:
                 try:
                     from src.industrial_ai.predict import MODEL_PATH, predict_failure
-                    logger.warning(
-                        f"INDUSTRIAL MODEL CHECK: path={MODEL_PATH} exists={MODEL_PATH.exists()}"
+                    logger.debug(
+                        "Industrial model check: path=%s exists=%s", MODEL_PATH, MODEL_PATH.exists()
                     )
                     prediction = predict_failure(
                         machine_type=str(data["machine_type"]),
@@ -343,9 +343,9 @@ class SensorIngester:
                     )
                     self._stats["last_prediction"] = prediction
                     self._stats["last_prediction_equipment"] = equipment_id
-                    logger.warning(
-                        f"INDUSTRIAL PREDICTION SUCCESS: equipment={equipment_id} "
-                        f"result={prediction}"
+                    logger.info(
+                        "Industrial prediction success: equipment=%s result=%s",
+                        equipment_id, prediction,
                     )
                 except Exception as prediction_error:
                     logger.exception(
@@ -353,9 +353,9 @@ class SensorIngester:
                         f"error={prediction_error}"
                     )
             else:
-                logger.warning(
-                    f"INDUSTRIAL PREDICTION SKIPPED: equipment={equipment_id} "
-                    f"missing={missing}"
+                logger.info(
+                    "Industrial prediction skipped: equipment=%s missing=%s",
+                    equipment_id, missing,
                 )
 
             # Persist telemetry and ML prediction
@@ -366,9 +366,9 @@ class SensorIngester:
                     timestamp,
                     prediction,
                 )
-                logger.warning(
-                    f"DB PERSISTENCE SUCCESS: equipment={equipment_id} "
-                    f"prediction_saved={prediction is not None}"
+                logger.debug(
+                    "DB persistence success: equipment=%s prediction_saved=%s",
+                    equipment_id, prediction is not None,
                 )
             except Exception as db_error:
                 logger.exception(
@@ -431,7 +431,7 @@ class SensorIngester:
                         for topic in self.topics:
                             result, _mid = _client.subscribe(topic, qos=1)
                             if result == mqtt.MQTT_ERR_SUCCESS:
-                                logger.warning(f"Subscribed to MQTT topic: {topic}")
+                                logger.info("Subscribed to MQTT topic: %s", topic)
                             else:
                                 logger.error(
                                     f"Failed to subscribe to {topic}: result={result}"
@@ -474,8 +474,9 @@ class SensorIngester:
                     try:
                         topic = str(message.topic)
                         payload = bytes(message.payload)
-                        logger.warning(
-                            f"MQTT MESSAGE RECEIVED: topic={topic} qos={message.qos} payload_bytes={len(payload)}"
+                        logger.debug(
+                            "MQTT message received: topic=%s qos=%s payload_bytes=%s",
+                            topic, message.qos, len(payload),
                         )
                         loop.call_soon_threadsafe(
                             queue.put_nowait,
