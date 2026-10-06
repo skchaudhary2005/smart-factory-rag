@@ -6,9 +6,9 @@ const API = String(import.meta.env.VITE_API_BASE_URL || "http://localhost:8000")
 type Props = { machineId?: string; language: "en" | "hi" | "hinglish"; question?: string; assessment?: any };
 
 const copy = {
-  en: { title: "NEXT-GEN INDUSTRIAL INTELLIGENCE", sub: "Anomaly detection, alerts, digital twin, edge readiness & maintenance workflow", anomaly: "Anomaly Detection", alerts: "Smart Alerts", twin: "Digital Twin", edge: "Edge AI Ready", schedule: "Maintenance Scheduling", feedback: "Technician Feedback", scheduleBtn: "Plan Maintenance", feedbackBtn: "Save Feedback", feedbackPlaceholder: "Was this AI recommendation useful?", noAnomaly: "No significant anomaly detected", baseline: "Baseline building", save: "Saved" },
-  hi: { title: "नेक्स्ट-जेन इंडस्ट्रियल इंटेलिजेंस", sub: "Anomaly detection, alerts, digital twin, edge readiness और maintenance workflow", anomaly: "एनोमली डिटेक्शन", alerts: "स्मार्ट अलर्ट", twin: "डिजिटल ट्विन", edge: "एज AI तैयार", schedule: "मेंटेनेंस शेड्यूल", feedback: "टेक्नीशियन फीडबैक", scheduleBtn: "मेंटेनेंस प्लान करें", feedbackBtn: "फीडबैक सेव करें", feedbackPlaceholder: "क्या AI recommendation उपयोगी थी?", noAnomaly: "कोई महत्वपूर्ण anomaly नहीं मिली", baseline: "Baseline बन रहा है", save: "सेव" },
-  hinglish: { title: "NEXT-GEN INDUSTRIAL INTELLIGENCE", sub: "Anomaly detection, alerts, digital twin, edge readiness aur maintenance workflow", anomaly: "Anomaly Detection", alerts: "Smart Alerts", twin: "Digital Twin", edge: "Edge AI Ready", schedule: "Maintenance Scheduling", feedback: "Technician Feedback", scheduleBtn: "Maintenance Plan Karo", feedbackBtn: "Feedback Save Karo", feedbackPlaceholder: "Kya AI recommendation useful thi?", noAnomaly: "Koi significant anomaly detect nahi hui", baseline: "Baseline build ho raha hai", save: "Save" },
+  en: { title: "NEXT-GEN INDUSTRIAL INTELLIGENCE", sub: "Anomaly detection, alerts, digital twin, edge readiness & maintenance workflow", anomaly: "Anomaly Detection", alerts: "Smart Alerts", twin: "Digital Twin", edge: "Edge AI Ready", schedule: "Maintenance Scheduling", feedback: "Technician Feedback", scheduleBtn: "Plan Maintenance", feedbackBtn: "Save Feedback", feedbackPlaceholder: "Was this AI recommendation useful?", noAnomaly: "No significant anomaly detected", baseline: "Baseline building", save: "Saved", simulate: "Run What-If Simulation", simulation: "Simulation Result" },
+  hi: { title: "नेक्स्ट-जेन इंडस्ट्रियल इंटेलिजेंस", sub: "Anomaly detection, alerts, digital twin, edge readiness और maintenance workflow", anomaly: "एनोमली डिटेक्शन", alerts: "स्मार्ट अलर्ट", twin: "डिजिटल ट्विन", edge: "एज AI तैयार", schedule: "मेंटेनेंस शेड्यूल", feedback: "टेक्नीशियन फीडबैक", scheduleBtn: "मेंटेनेंस प्लान करें", feedbackBtn: "फीडबैक सेव करें", feedbackPlaceholder: "क्या AI recommendation उपयोगी थी?", noAnomaly: "कोई महत्वपूर्ण anomaly नहीं मिली", baseline: "Baseline बन रहा है", save: "सेव", simulate: "What-If Simulation चलाएँ", simulation: "Simulation Result" },
+  hinglish: { title: "NEXT-GEN INDUSTRIAL INTELLIGENCE", sub: "Anomaly detection, alerts, digital twin, edge readiness aur maintenance workflow", anomaly: "Anomaly Detection", alerts: "Smart Alerts", twin: "Digital Twin", edge: "Edge AI Ready", schedule: "Maintenance Scheduling", feedback: "Technician Feedback", scheduleBtn: "Maintenance Plan Karo", feedbackBtn: "Feedback Save Karo", feedbackPlaceholder: "Kya AI recommendation useful thi?", noAnomaly: "Koi significant anomaly detect nahi hui", baseline: "Baseline build ho raha hai", save: "Save", simulate: "What-If Simulation Chalao", simulation: "Simulation Result" },
 } as const;
 
 export default function FutureIntelligence({ machineId, language, question = "", assessment }: Props) {
@@ -24,6 +24,9 @@ export default function FutureIntelligence({ machineId, language, question = "",
   const [priority, setPriority] = useState("MEDIUM");
   const [date, setDate] = useState("");
   const [action, setAction] = useState("Maintenance inspection");
+  const [sim, setSim] = useState({ air_temperature: "", process_temperature: "", rotational_speed: "", torque: "", tool_wear: "" });
+  const [simResult, setSimResult] = useState<any>(null);
+  const [simulating, setSimulating] = useState(false);
 
   useEffect(() => {
     if (!machineId) return;
@@ -48,6 +51,18 @@ export default function FutureIntelligence({ machineId, language, question = "",
     load();
   }, [machineId]);
 
+  useEffect(() => {
+    const m = twin.find(x => x.machine_id === machineId);
+    if (!m) return;
+    setSim({
+      air_temperature: m.air_temperature == null ? "" : String(m.air_temperature),
+      process_temperature: m.process_temperature == null ? "" : String(m.process_temperature),
+      rotational_speed: m.rotational_speed == null ? "" : String(m.rotational_speed),
+      torque: m.torque == null ? "" : String(m.torque),
+      tool_wear: m.tool_wear == null ? "" : String(m.tool_wear),
+    });
+  }, [machineId, twin]);
+
   const saveFeedback = async () => {
     if (!machineId || !feedback.trim()) return;
     try {
@@ -70,7 +85,30 @@ export default function FutureIntelligence({ machineId, language, question = "",
     } catch {}
   };
 
+  const simulate = async () => {
+    if (!machineId) return;
+    setSimulating(true);
+    setSimResult(null);
+    try {
+      const payload: Record<string, unknown> = { machine_id: machineId };
+      Object.entries(sim).forEach(([key, value]) => {
+        if (value.trim() !== "") payload[key] = Number(value);
+      });
+      const r = await fetch(API + "/future/digital-twin/simulate", {
+        method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload)
+      });
+      const data = await r.json();
+      if (r.ok) setSimResult(data);
+      else setSimResult({ error: data.detail || "Simulation failed" });
+    } catch {
+      setSimResult({ error: "Unable to reach simulation API" });
+    } finally {
+      setSimulating(false);
+    }
+  };
+
   const twinMachine = twin.find(x => x.machine_id === machineId);
+  const updateSim = (key: keyof typeof sim, value: string) => setSim(prev => ({ ...prev, [key]: value }));
 
   return <section className="panel" style={{marginTop:24}}>
     <div className="head">
@@ -101,6 +139,24 @@ export default function FutureIntelligence({ machineId, language, question = "",
         <div className="copilot-input"><input value={feedback} onChange={e=>setFeedback(e.target.value)} placeholder={t.feedbackPlaceholder}/><button type="button" onClick={saveFeedback}>{t.feedbackBtn}</button></div>
         {saved && <div className="status"><b>{saved}</b></div>}
       </div>
+    </div>
+    <div className="panel" style={{marginTop:16}}>
+      <small><Brain size={14}/> {t.twin} · {t.simulation}</small>
+      <h3>{t.simulation}</h3>
+      <div className="copilot-input" style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:8}}>
+        <input type="number" step="any" value={sim.air_temperature} onChange={e=>updateSim("air_temperature",e.target.value)} placeholder="Air °C"/>
+        <input type="number" step="any" value={sim.process_temperature} onChange={e=>updateSim("process_temperature",e.target.value)} placeholder="Process °C"/>
+        <input type="number" step="any" value={sim.rotational_speed} onChange={e=>updateSim("rotational_speed",e.target.value)} placeholder="RPM"/>
+        <input type="number" step="any" value={sim.torque} onChange={e=>updateSim("torque",e.target.value)} placeholder="Torque"/>
+        <input type="number" step="any" value={sim.tool_wear} onChange={e=>updateSim("tool_wear",e.target.value)} placeholder="Tool wear"/>
+      </div>
+      <div className="copilot-input" style={{marginTop:8}}>
+        <button type="button" onClick={simulate} disabled={simulating || !machineId}>{simulating ? "Running..." : t.simulate}</button>
+      </div>
+      {simResult && <div className="status" style={{marginTop:8}}>
+        <b>{simResult.error ? "Simulation error" : (simResult.predicted_result?.prediction || simResult.predicted_result?.risk_level || "Simulation complete")}</b>
+        <span>{simResult.error || ("Failure probability: " + (simResult.predicted_result?.failure_probability != null ? (Number(simResult.predicted_result.failure_probability)*100).toFixed(2)+"%" : "--"))}</span>
+      </div>}
     </div>
   </section>;
 }
