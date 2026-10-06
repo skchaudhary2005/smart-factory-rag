@@ -27,7 +27,7 @@ export default function FutureIntelligence({ machineId, language, question = "",
     if (!machineId) return;
     const load = async () => {
       try {
-        const [a, b, c, d] = await Promise.all([
+        const [a, b, c, d, e, f] = await Promise.all([
           fetch(API + "/future/anomalies/" + encodeURIComponent(machineId) + "?limit=100"),
           fetch(API + "/future/alerts"),
           fetch(API + "/future/digital-twin"),
@@ -36,7 +36,7 @@ export default function FutureIntelligence({ machineId, language, question = "",
         if (a.ok) setAnomalies((await a.json()).anomalies || []);
         if (b.ok) setAlerts((await b.json()).alerts || []);
         if (c.ok) setTwin((await c.json()).machines || []);
-        if (d.ok) setEdge(await d.json());\n        if (arguments.length) {}
+        if (d.ok) setEdge(await d.json());\n        if (e.ok) setRul(await e.json());\n        if (f.ok) setModels(await f.json());
       } catch {}
     };
     load();
