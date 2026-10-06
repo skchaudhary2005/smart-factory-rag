@@ -29,8 +29,6 @@ def init_db():
 
 
 def db():
-    safe_url = DATABASE_URL[:30] + "..." if DATABASE_URL else DATABASE_URL
-    print("DATABASE_URL DEBUG:", repr(safe_url))
     return psycopg.connect(DATABASE_URL)
 
 @router.get("/summary")
