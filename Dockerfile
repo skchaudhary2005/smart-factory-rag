@@ -17,18 +17,21 @@ RUN pip install --no-cache-dir --no-build-isolation . --no-deps
 RUN pip install --no-cache-dir "fastapi>=0.115.0" "uvicorn[standard]>=0.30.0" "pydantic-ai>=1.0,<2" "pydantic>=2.7,<3" "python-dotenv>=1.0,<2" "sentence-transformers>=3.0" "faiss-cpu>=1.8.0" "rank-bm25>=0.2.2" "lightgbm>=4.3.0" "numpy>=1.26.0" "pandas>=2.2.0" "aiomqtt>=2.0.0" "paho-mqtt>=2.1.0" "pypdf>=4.0.0" "python-docx>=1.1.0" "openpyxl>=3.1.0" "joblib>=1.3.0" "structlog>=24.0.0" "pyyaml>=6.0" "psycopg[binary]"
 
 # Git LFS files may arrive as pointer files in Render Docker build contexts.
-# Download the real industrial model artifact when that happens.
+# Materialize both production industrial models because future RUL endpoints load
+# rul_model.joblib lazily at runtime.
 RUN python - <<'PY'
 from pathlib import Path
 import urllib.request
 
-p = Path("/app/models/industrial/failure_model.joblib")
-if p.exists() and p.read_text(errors="ignore").startswith("version https://git-lfs.github.com/spec/v1"):
-    url = "https://github.com/skchaudhary2005/smart-factory-rag/raw/main/models/industrial/failure_model.joblib"
-    tmp = p.with_suffix(".joblib.download")
-    urllib.request.urlretrieve(url, tmp)
-    tmp.replace(p)
-print("industrial model bytes:", p.stat().st_size if p.exists() else 0)
+base = Path("/app/models/industrial")
+for name in ("failure_model.joblib", "rul_model.joblib"):
+    p = base / name
+    if p.exists() and p.read_text(errors="ignore").startswith("version https://git-lfs.github.com/spec/v1"):
+        url = f"https://github.com/skchaudhary2005/smart-factory-rag/raw/main/models/industrial/{name}"
+        tmp = p.with_suffix(p.suffix + ".download")
+        urllib.request.urlretrieve(url, tmp)
+        tmp.replace(p)
+    print(f"{name} bytes:", p.stat().st_size if p.exists() else 0)
 PY
 
 EXPOSE 8000
