@@ -16,7 +16,9 @@ export default function FutureIntelligence({ machineId, language, question = "",
   const [anomalies, setAnomalies] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
   const [twin, setTwin] = useState<any[]>([]);
-  const [edge, setEdge] = useState<any>(null);\n  const [rul, setRul] = useState<any>(null);\n  const [models, setModels] = useState<any>(null);
+  const [edge, setEdge] = useState<any>(null);
+  const [rul, setRul] = useState<any>(null);
+  const [models, setModels] = useState<any>(null);
   const [feedback, setFeedback] = useState("");
   const [saved, setSaved] = useState("");
   const [priority, setPriority] = useState("MEDIUM");
@@ -38,7 +40,9 @@ export default function FutureIntelligence({ machineId, language, question = "",
         if (a.ok) setAnomalies((await a.json()).anomalies || []);
         if (b.ok) setAlerts((await b.json()).alerts || []);
         if (c.ok) setTwin((await c.json()).machines || []);
-        if (d.ok) setEdge(await d.json());\n        if (e.ok) setRul(await e.json());\n        if (f.ok) setModels(await f.json());
+        if (d.ok) setEdge(await d.json());
+        if (e.ok) setRul(await e.json());
+        if (f.ok) setModels(await f.json());
       } catch {}
     };
     load();
@@ -89,6 +93,7 @@ export default function FutureIntelligence({ machineId, language, question = "",
       </div>
     </div>
     <div className="grid lower">
+      <div className="panel"><small>RUL & MODEL GOVERNANCE</small><h3>{rul?.available ? (Number(rul.predicted_rul_cycles).toFixed(1) + " cycles") : "Live RUL waiting for 21 sensors"}</h3><div className="status"><b>Champion</b><span>{models?.active?.failure || "rf-industrial-v1"}</span></div><div className="status"><b>Challengers</b><span>{(models?.candidate_models || []).join(", ")}</span></div></div>
       <div className="panel"><small><CalendarClock size={14}/> {t.schedule}</small>
         <div className="copilot-input"><select value={priority} onChange={e=>setPriority(e.target.value)}><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select><input value={action} onChange={e=>setAction(e.target.value)} placeholder="Action"/><input type="datetime-local" value={date} onChange={e=>setDate(e.target.value)}/><button type="button" onClick={schedule}>{t.scheduleBtn}</button></div>
       </div>
