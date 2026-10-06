@@ -7,8 +7,10 @@ const Analytics = lazy(() => import('./Analytics'));
 const TelemetryChart = lazy(() => import('./TelemetryChart'));
 import FactoryArchitecture from "./FactoryArchitecture";
 import Factory3D from "./Factory3D";
+import FutureIntelligence from "./FutureIntelligence";
 
 const API=String(import.meta.env.VITE_API_BASE_URL||"http://localhost:8000").replace(/\/$/,"");
+type Language = "auto" | "en" | "hi" | "hinglish";
 
 export default function App(){
  const [summary,setSummary]=useState<any>(null);
@@ -49,6 +51,7 @@ export default function App(){
  const [assessment,setAssessment]=useState<any>(null); const [question,setQuestion]=useState("What maintenance checks should be performed for this machine?"); const [ragAnswer,setRagAnswer]=useState<any>(null);
 
  const [assessing,setAssessing]=useState(false);
+ const [language,setLanguage]=useState<Language>("auto");
 
  const runAssessment=async()=>{
   try{
@@ -66,7 +69,8 @@ export default function App(){
     op_setting_2:0,
     op_setting_3:0,
     sensors:Array(21).fill(0),
-    question
+    question,
+    language: language === "auto" ? undefined : language
    };
 
    // Run the industrial assessment FIRST. RAG is optional enrichment and
@@ -117,7 +121,7 @@ export default function App(){
  };
 
  return <div className="app">
-  <header><div><div className="eyebrow">INDUSTRIAL AI PLATFORM</div><h1>Smart Factory Monitor</h1><p>Predictive maintenance & real-time machine intelligence</p></div><button onClick={load}><RefreshCw size={16}/> Refresh</button></header>
+  <header><div><div className="eyebrow">INDUSTRIAL AI PLATFORM</div><h1>Smart Factory Monitor</h1><p>Predictive maintenance & real-time machine intelligence</p></div><div style={{display:"flex",gap:8,alignItems:"center"}}><select aria-label="AI language" value={language} onChange={e=>setLanguage(e.target.value as Language)}><option value="auto">Auto / Hinglish</option><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select><button onClick={load}><RefreshCw size={16}/> Refresh</button></div></header>
   {error&&<div className="error">{error}</div>}
   <section className="stats">
    <Card icon={<Activity/>} title="Telemetry Readings" value={summary?.readings??0}/>
