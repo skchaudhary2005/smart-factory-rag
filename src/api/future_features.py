@@ -10,7 +10,7 @@ import psycopg
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from src.industrial_ai.rul_predict import predict_rul
+from src.industrial_ai.rul_predict import predict_rul\nfrom src.industrial_ai.predict import predict_failure
 
 router = APIRouter(prefix="/future", tags=["Future Intelligence"])
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://factory:factory@postgres:5432/smartfactory")
@@ -270,4 +270,41 @@ def model_registry():
         "challenger_policy": "New models must be evaluated on ground-truth labeled failures before promotion.",
         "candidate_models": ["LightGBM", "XGBoost", "LSTM", "Transformer"],
         "promotion_guard": "No automatic model replacement is enabled; the current production model remains unchanged until a validated challenger is available.",
+    }
+
+class SimulationRequest(BaseModel):
+    machine_id: str
+    air_temperature: float | None = None
+    process_temperature: float | None = None
+    rotational_speed: float | None = None
+    torque: float | None = None
+    tool_wear: float | None = None
+
+@router.post("/digital-twin/simulate")
+def digital_twin_simulate(request: SimulationRequest):
+    with psycopg.connect(DATABASE_URL) as conn:
+        row = conn.execute(
+            """SELECT machine_type, air_temperature, process_temperature,
+                      rotational_speed, torque, tool_wear
+               FROM sensor_readings WHERE machine_id=%s
+               ORDER BY time DESC LIMIT 1""",
+            (request.machine_id,),
+        ).fetchone()
+    if not row:
+        raise HTTPException(404, f"Machine {request.machine_id} not found")
+    values = {
+        "machine_type": row[0],
+        "air_temperature": request.air_temperature if request.air_temperature is not None else row[1],
+        "process_temperature": request.process_temperature if request.process_temperature is not None else row[2],
+        "rotational_speed": request.rotational_speed if request.rotational_speed is not None else row[3],
+        "torque": request.torque if request.torque is not None else row[4],
+        "tool_wear": request.tool_wear if request.tool_wear is not None else row[5],
+    }
+    result = predict_failure(**values)
+    return {
+        "machine_id": request.machine_id,
+        "simulation_only": True,
+        "warning": "This is a what-if simulation; it does not change machine controls.",
+        "inputs": values,
+        "predicted_result": result,
     }
