@@ -32,6 +32,8 @@ export default function FutureIntelligence({ machineId, language, question = "",
           fetch(API + "/future/alerts"),
           fetch(API + "/future/digital-twin"),
           fetch(API + "/future/edge/status"),
+          fetch(API + "/future/rul/live/" + encodeURIComponent(machineId)),
+          fetch(API + "/future/model-registry"),
         ]);
         if (a.ok) setAnomalies((await a.json()).anomalies || []);
         if (b.ok) setAlerts((await b.json()).alerts || []);
