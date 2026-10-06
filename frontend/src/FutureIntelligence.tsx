@@ -16,7 +16,7 @@ export default function FutureIntelligence({ machineId, language, question = "",
   const [anomalies, setAnomalies] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
   const [twin, setTwin] = useState<any[]>([]);
-  const [edge, setEdge] = useState<any>(null);
+  const [edge, setEdge] = useState<any>(null);\n  const [rul, setRul] = useState<any>(null);\n  const [models, setModels] = useState<any>(null);
   const [feedback, setFeedback] = useState("");
   const [saved, setSaved] = useState("");
   const [priority, setPriority] = useState("MEDIUM");
@@ -36,7 +36,7 @@ export default function FutureIntelligence({ machineId, language, question = "",
         if (a.ok) setAnomalies((await a.json()).anomalies || []);
         if (b.ok) setAlerts((await b.json()).alerts || []);
         if (c.ok) setTwin((await c.json()).machines || []);
-        if (d.ok) setEdge(await d.json());
+        if (d.ok) setEdge(await d.json());\n        if (arguments.length) {}
       } catch {}
     };
     load();
