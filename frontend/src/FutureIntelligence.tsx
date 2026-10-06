@@ -94,12 +94,17 @@ export default function FutureIntelligence({ machineId, language, question = "",
       Object.entries(sim).forEach(([key, value]) => {
         if (value.trim() !== "") payload[key] = Number(value);
       });
-      const r = await fetch(API + "/future/digital-twin/simulate", {
-        method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload)
+      const params = new URLSearchParams({ machine_id: machineId });
+      Object.entries(payload).forEach(([key, value]) => {
+        if (key !== "machine_id" && value !== undefined) params.set(key, String(value));
       });
-      const data = await r.json();
+      const r = await fetch(API + "/future/digital-twin/simulate?" + params.toString(), {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+      const data = await r.json().catch(() => ({}));
       if (r.ok) setSimResult(data);
-      else setSimResult({ error: data.detail || "Simulation failed" });
+      else setSimResult({ error: data.detail || "Simulation failed (HTTP " + r.status + ")" });
     } catch {
       setSimResult({ error: "Unable to reach simulation API" });
     } finally {
