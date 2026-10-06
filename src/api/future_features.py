@@ -24,8 +24,8 @@ def detect_language(text: str) -> str:
         return "hi"
     hinglish = {
         "kyu", "kyun", "kya", "kaise", "batao", "btao", "hai", "hain",
-        "machine", "risk", "wala", "wali", "karna", "karo", "chahiye",
-        "problem", "maintenance", "check", "bacha", "chal", "ho", "raha",
+        "wala", "wali", "karna", "karo", "chahiye", "bacha", "chal",
+        "ho", "raha", "rha", "rhi", "krna", "kr", "bta", "batao",
     }
     words = set(re.findall(r"[a-zA-Z]+", s))
     if len(words & hinglish) >= 2:
