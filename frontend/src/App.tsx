@@ -45,7 +45,7 @@ export default function App(){
    }
   }catch(e){setError(e instanceof Error?e.message:"Connection error")}
  };
- useEffect(()=>{load();const t=setInterval(load,5000);return()=>clearInterval(t)},[]);
+ useEffect(()=>{load();const t=setInterval(load,5000);return()=>clearInterval(t)},[selectedMachineId]);
  const machine=machines.find((x:any)=>x.machine_id===selectedMachineId)||machines[0];
  const latest=history[history.length-1];
  const [assessment,setAssessment]=useState<any>(null); const [question,setQuestion]=useState("What maintenance checks should be performed for this machine?"); const [ragAnswer,setRagAnswer]=useState<any>(null);
