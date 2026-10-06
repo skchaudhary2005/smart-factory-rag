@@ -72,8 +72,8 @@ async def lifespan(app: FastAPI):
     from src.ml.predictor import FailurePredictor
     from src.sensors.ingester import SensorIngester
 
-    print("SMARTFACTORY STARTUP: lifespan entered", flush=True)
-    logger.warning("Initializing SmartFactory-RAG components...")
+    logger.info("SmartFactory-RAG startup: lifespan entered")
+    logger.info("Initializing SmartFactory-RAG components...")
     try:
         init_db()
         init_future_db()
@@ -93,7 +93,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Predictor not available: {e}")
 
-    print("SMARTFACTORY STARTUP: creating MQTT ingester", flush=True)
+    logger.info("SmartFactory-RAG startup: creating MQTT ingester")
     _ingester = SensorIngester(
         mqtt_broker=os.getenv("MQTT_BROKER", "mqtt://localhost:1883"),
         topics=["factory/#"],
@@ -107,15 +107,12 @@ async def lifespan(app: FastAPI):
             return
         exc = task.exception()
         if exc is not None:
-            print(f"SMARTFACTORY MQTT TASK ERROR: {exc!r}", flush=True)
             logger.error("MQTT ingestion task terminated unexpectedly: %r", exc)
         else:
-            print("SMARTFACTORY MQTT TASK EXITED", flush=True)
-            logger.warning("MQTT ingestion task exited unexpectedly")
+            logger.error("MQTT ingestion task exited unexpectedly")
 
     ingestion_task.add_done_callback(_report_ingestion_task)
-    print("SMARTFACTORY STARTUP: MQTT ingestion task created", flush=True)
-    logger.warning("MQTT ingestion task created and scheduled")
+    logger.info("SmartFactory-RAG startup: MQTT ingestion task created and scheduled")
     await asyncio.sleep(0)
 
     yield
