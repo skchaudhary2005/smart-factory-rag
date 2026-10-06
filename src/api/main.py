@@ -26,7 +26,7 @@ class QueryRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=2000)
     top_k: int = Field(default=5, ge=1, le=20)
     rerank: bool = False
-    language: Optional[str] = None  # "el", "en", or auto-detect
+    language: Optional[str] = None  # "en", "hi", "hinglish", or auto-detect
 
 class QueryResponse(BaseModel):
     answer: str
@@ -175,6 +175,7 @@ async def query_documents(request: QueryRequest):
         question=request.question,
         top_k=request.top_k,
         rerank=request.rerank,
+        language=request.language or detect_language(request.question),
     )
 
     return QueryResponse(
@@ -397,7 +398,7 @@ async def industrial_maintenance_assessment(request: MaintenanceAssessmentReques
         evidence = []
         if _rag_engine is not None:
             try:
-                rag = await asyncio.wait_for(asyncio.to_thread(_rag_engine.query, request.question, top_k=3, rerank=False), timeout=5.0)
+                rag = await asyncio.wait_for(asyncio.to_thread(_rag_engine.query, request.question, top_k=3, rerank=False, language=detected_language), timeout=5.0)
                 evidence = [{'document': x.document, 'page': x.page, 'paragraph': x.paragraph, 'score': x.score, 'chunk_text': x.chunk_text} for x in rag.sources[:3]]
             except Exception as exc:
                 logger.warning('Maintenance RAG evidence unavailable: %s', exc)
