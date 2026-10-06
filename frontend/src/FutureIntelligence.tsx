@@ -23,7 +23,10 @@ export default function FutureIntelligence({ machineId, language, question = "",
   const [saved, setSaved] = useState("");
   const [priority, setPriority] = useState("MEDIUM");
   const [date, setDate] = useState("");
-  const [action, setAction] = useState("Maintenance inspection");\n  const [simRpm, setSimRpm] = useState("");\n  const [simTorque, setSimTorque] = useState("");\n  const [simResult, setSimResult] = useState<any>(null);
+  const [action, setAction] = useState("Maintenance inspection");
+  const [simRpm, setSimRpm] = useState("");
+  const [simTorque, setSimTorque] = useState("");
+  const [simResult, setSimResult] = useState<any>(null);
 
   useEffect(() => {
     if (!machineId) return;
