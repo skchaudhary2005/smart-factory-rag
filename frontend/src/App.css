@@ -86,3 +86,10 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-3;bac
 @media (prefers-reduced-motion:reduce){
   .ambient-grid,.ambient-grid:after{animation:none}
 }
+
+/* Screen-like composition: compact sections feel like full screens, while
+   larger intelligence/coplanilot sections are allowed to grow naturally. */
+@media (min-width:901px){
+  .stack-section{min-height:72vh}
+  .stack-overview,.stack-machine,.stack-alerts,.stack-architecture{min-height:78vh}
+}
