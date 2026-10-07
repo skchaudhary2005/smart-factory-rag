@@ -128,7 +128,7 @@ export default function App(){
     <div><div className="eyebrow">INDUSTRIAL AI PLATFORM · LIVE</div><h1>Smart Factory RAG</h1><p>Predictive maintenance · machine intelligence · industrial copilot</p></div>
    </div>
    <nav className="command-nav" aria-label="Smart Factory sections">
-    <a href="#overview"><span>01</span>Overview</a><a href="#machine"><span>02</span>Machine</a><a href="#copilot"><span>03</span>AI Copilot</a><a href="#intelligence"><span>04</span>Future AI</a><a href="#architecture"><span>05</span>Architecture</a>
+    <a href="#overview"><span>01</span>Overview</a><a href="#machine"><span>02</span>Machine</a><a href="#copilot"><span>03</span>AI Copilot</a><a href="#alerts"><span>04</span>Alerts</a><a href="#intelligence"><span>05</span>Future AI</a><a href="#architecture"><span>06</span>Architecture</a>
    </nav>
    <div className="header-controls">
     <select aria-label="Machine" value={selectedMachineId} onChange={e=>setSelectedMachineId(e.target.value)}>{liveMachineOptions(machines).map((id:string)=><option key={id} value={id}>{id}</option>)}</select>
@@ -263,11 +263,11 @@ export default function App(){
   </section>
   </section>
   <section id="intelligence" className="stack-section stack-intelligence">
-   <div className="section-label"><span>06</span><BrainCircuit size={14}/> FUTURE INTELLIGENCE</div>
+   <div className="section-label"><span>05</span><BrainCircuit size={14}/> FUTURE INTELLIGENCE</div>
    <FutureIntelligence machineId={selectedMachineId} language={language === "auto" ? "hinglish" : language} question={question} assessment={assessment}/>
   </section>
   <section id="architecture" className="stack-section stack-architecture">
-   <div className="section-label"><span>07</span><Network size={14}/> INDUSTRIAL ARCHITECTURE</div>
+   <div className="section-label"><span>06</span><Network size={14}/> INDUSTRIAL ARCHITECTURE</div>
    <FactoryArchitecture/>
    <Factory3D/>
   </section>
