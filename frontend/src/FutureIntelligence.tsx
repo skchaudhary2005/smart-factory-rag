@@ -149,7 +149,7 @@ export default function FutureIntelligence({ machineId, language, question = "",
     </div>
     <div className="grid lower">
       <div className="panel"><small>RUL & MODEL GOVERNANCE</small><h3>{rul?.available ? (Number(rul.predicted_rul_cycles).toFixed(1) + " cycles") : "Live RUL waiting for 21 sensors"}</h3><div className="status"><b>Champion</b><span>{models?.active?.failure || "rf-industrial-v1"}</span></div><div className="status"><b>Challengers</b><span>{(models?.candidate_models || []).join(", ")}</span></div></div>
-      <div className="panel"><small><CalendarClock size={14}/> {t.schedule}</small>
+      <div id="maintenance" className="panel maintenance-panel"><small><CalendarClock size={14}/> {t.schedule}</small>
         <div className="copilot-input"><select value={priority} onChange={e=>setPriority(e.target.value)}><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select><input value={action} onChange={e=>setAction(e.target.value)} placeholder="Action"/><input type="datetime-local" value={date} onChange={e=>setDate(e.target.value)}/><button type="button" onClick={schedule}>{t.scheduleBtn}</button></div>
         {schedules.slice(0,3).map((x:any)=><div className="status" key={x.id || x.scheduled_for}><b>{x.priority} · {x.action}</b><span>{new Date(x.scheduled_for).toLocaleString()} · {x.status}</span></div>)}
       </div>
