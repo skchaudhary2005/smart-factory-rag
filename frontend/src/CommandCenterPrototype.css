@@ -760,3 +760,90 @@
   .copilot-context{grid-template-columns:1fr!important}
   .copilot-context .panel{border-right:0!important;border-bottom:1px solid rgba(114,255,173,.09)!important}
 }
+
+
+/* V6 — keep copilot boards fully inside the viewport.
+   Presentation-only: no API/data/workflow changes. */
+.stack-copilot,
+.stack-copilot > .panel,
+.stack-copilot .copilot-context,
+.stack-copilot .copilot-context > .panel{
+  min-width:0 !important;
+  max-width:100% !important;
+}
+
+.stack-copilot .copilot-context{
+  width:100% !important;
+  overflow:hidden !important;
+}
+
+.stack-copilot .copilot-context .machine-monitoring{
+  overflow:hidden !important;
+}
+
+.stack-copilot .copilot-context .sensor-intelligence{
+  overflow:hidden !important;
+}
+
+/* The two internal boards get their own responsive card grids.
+   This prevents the right board from being pushed outside the screen. */
+.stack-copilot .monitor-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  min-width:0 !important;
+}
+
+.stack-copilot .sensor-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  min-width:0 !important;
+}
+
+.stack-copilot .monitor-item,
+.stack-copilot .sensor-card{
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+
+.stack-copilot .monitor-item b,
+.stack-copilot .sensor-card b,
+.stack-copilot .monitor-item small,
+.stack-copilot .sensor-card small,
+.stack-copilot .sensor-card span{
+  min-width:0 !important;
+  overflow-wrap:anywhere !important;
+}
+
+.stack-copilot .sensor-footer{
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+
+.stack-copilot .sensor-footer b{
+  min-width:0 !important;
+  overflow-wrap:anywhere !important;
+}
+
+/* Keep the cinematic scene itself inside the browser viewport. */
+@media(min-width:1001px){
+  .stack-copilot{
+    width:min(1380px,calc(100vw - 96px)) !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+    transform:none !important;
+  }
+}
+
+@media(max-width:1000px){
+  .stack-copilot .monitor-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .stack-copilot .sensor-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+@media(max-width:600px){
+  .stack-copilot .monitor-grid,
+  .stack-copilot .sensor-grid{
+    grid-template-columns:1fr 1fr !important;
+  }
+}
