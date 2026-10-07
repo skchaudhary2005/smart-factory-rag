@@ -128,7 +128,7 @@ export default function App(){
     <div><div className="eyebrow">INDUSTRIAL AI PLATFORM · LIVE</div><h1>Smart Factory RAG</h1><p>Predictive maintenance · machine intelligence · industrial copilot</p></div>
    </div>
    <nav className="command-nav" aria-label="Smart Factory sections">
-    <a href="#overview"><span>01</span>Overview</a><a href="#machine"><span>02</span>Machine</a><a href="#copilot"><span>03</span>AI Copilot</a><a href="#alerts"><span>04</span>Alerts</a><a href="#intelligence"><span>05</span>Future AI</a><a href="#architecture"><span>06</span>Architecture</a>
+    <a href="#overview"><span>01</span>Overview</a><a href="#machine"><span>02</span>Machine</a><a href="#telemetry"><span>03</span>Telemetry</a><a href="#copilot"><span>04</span>AI Copilot</a><a href="#alerts"><span>05</span>Alerts</a><a href="#analytics"><span>06</span>Analytics</a><a href="#maintenance"><span>07</span>Maintenance</a><a href="#intelligence"><span>08</span>Future AI</a><a href="#architecture"><span>09</span>Architecture</a>
    </nav>
    <div className="header-controls">
     <select aria-label="Machine" value={selectedMachineId} onChange={e=>setSelectedMachineId(e.target.value)}>{liveMachineOptions(machines).map((id:string)=><option key={id} value={id}>{id}</option>)}</select>
@@ -137,6 +137,17 @@ export default function App(){
    </div>
   </header>
   <div className="scroll-cue"><ChevronDown size={15}/><span>SCROLL TO EXPLORE</span></div>
+  <aside className="command-rail" aria-label="Smart Factory command rail">
+   <a href="#overview" title="Overview"><span>01</span><b>OV</b></a>
+   <a href="#machine" title="Machine"><span>02</span><b>MC</b></a>
+   <a href="#telemetry" title="Telemetry"><span>03</span><b>TL</b></a>
+   <a href="#copilot" title="AI Copilot"><span>04</span><b>AI</b></a>
+   <a href="#alerts" title="Alerts"><span>05</span><b>AL</b></a>
+   <a href="#analytics" title="Analytics"><span>06</span><b>AN</b></a>
+   <a href="#maintenance" title="Maintenance"><span>07</span><b>MT</b></a>
+   <a href="#intelligence" title="Future AI"><span>08</span><b>FI</b></a>
+   <a href="#architecture" title="Architecture"><span>09</span><b>AR</b></a>
+  </aside>
   {error&&<div className="error">{error}</div>}
   <section id="overview" className="stack-section stack-overview">
    <div className="section-label"><span>01</span><Radio size={14}/> SYSTEM OVERVIEW</div>
@@ -150,13 +161,20 @@ export default function App(){
   </section>
   <section id="machine" className="stack-section stack-machine">
    <div className="section-label"><span>02</span><Activity size={14}/> LIVE MACHINE MONITORING</div>
+   <div className="section-intro"><div><small>SELECTED ASSET · LIVE</small><h2>{machine?.machine_id || "No machine"} intelligence</h2></div><span>REAL-TIME MACHINE STATE</span></div>
    <section className="grid">
    <div className="panel"><div className="head"><div><small>MACHINE</small><h2>{machine?.machine_id||"No machine"}</h2></div><span className={`badge ${(machine?.current_risk||"UNKNOWN").toLowerCase()}`}>{machine?.current_risk||"UNKNOWN"}</span></div>
     <div className="machine"><div><small>Prediction</small><b>{machine?.current_prediction||"N/A"}</b></div><div><small>Max Failure Risk</small><b>{((machine?.max_failure_probability||0)*100).toFixed(1)}%</b></div></div>
     <div className="metrics"><Metric icon={<Thermometer/>} name="Air" value={latest?.air_temperature?`${latest.air_temperature.toFixed(1)} K`:"--"}/><Metric icon={<Thermometer/>} name="Process" value={latest?.process_temperature?`${latest.process_temperature.toFixed(1)} K`:"--"}/><Metric icon={<Gauge/>} name="RPM" value={latest?.rotational_speed?.toFixed(0)||"--"}/><Metric icon={<Wrench/>} name="Torque" value={latest?.torque?`${latest.torque.toFixed(1)} Nm`:"--"}/></div>
    </div>
-   <div className='panel chart'><div className='head'><div><small>LIVE TELEMETRY</small><h2>Failure Probability</h2></div><span className='live'>LIVE</span></div><Suspense fallback={<div className='status'>Loading chart...</div>}><TelemetryChart history={history}/></Suspense></div>
+   <div className="panel machine-state-panel"><small>MACHINE HEALTH SIGNAL</small><h2>Live condition</h2><div className="status"><small>Current prediction</small><b>{machine?.current_prediction||"N/A"}</b></div><div className="status"><small>Failure probability</small><b>{((machine?.max_failure_probability||0)*100).toFixed(1)}%</b></div><div className="status"><small>Telemetry points</small><b>{history.length}</b></div></div>
    </section>
+  </section>
+
+  <section id="telemetry" className="stack-section stack-telemetry">
+   <div className="section-label"><span>03</span><Radio size={14}/> LIVE TELEMETRY</div>
+   <div className="section-intro"><div><small>TIME-SERIES INTELLIGENCE</small><h2>Failure probability over time</h2></div><span>LIVE STREAM</span></div>
+   <section className="panel chart telemetry-panel"><div className="head"><div><small>LIVE TELEMETRY</small><h2>Failure Probability</h2></div><span className="live">LIVE</span></div><Suspense fallback={<div className="status">Loading chart...</div>}><TelemetryChart history={history}/></Suspense></section>
   </section>
 
   <section id="copilot" className="stack-section stack-copilot">
@@ -253,7 +271,7 @@ export default function App(){
    <div className="section-label"><span>04</span><ShieldCheck size={14}/> ALERTS & FACTORY HEALTH</div>
   <section className="panel alerts" style={{marginTop:0}}><div className="head"><div><small>ALERT CENTER</small><h2>Machine Alerts</h2></div><span className="system-status">LIVE MONITORING</span></div><div className="alert-list">{(summary?.high_risk_readings??0)>0?<div className="alert-item high"><span className="alert-dot"></span><div><b>High-risk machine condition detected</b><small>Immediate maintenance assessment recommended.</small></div><strong>{summary?.high_risk_readings}</strong></div>:(summary?.medium_risk_readings??0)>0?<div className="alert-item medium"><span className="alert-dot"></span><div><b>Medium-risk telemetry detected</b><small>Continue monitoring and schedule maintenance inspection.</small></div><strong>{summary?.medium_risk_readings}</strong></div>:<div className="alert-item clear"><span className="alert-dot"></span><div><b>No active alerts</b><small>Current telemetry is within the monitored risk thresholds.</small></div><strong>0</strong></div>}</div></section>
 
-  <section className="panel analytics-shell" style={{marginTop:18}}>
+  <section id="analytics" className="panel analytics-shell" style={{marginTop:18}}>
    <div className="section-label"><span>05</span><Gauge size={14}/> ANALYTICS & MODEL STATUS</div>
   <section className="grid lower">
    <div className="panel"><small>RISK DISTRIBUTION</small><h2>Factory Health</h2><Row name="Low risk" value={summary?.low_risk_readings??0} cls="low"/><Row name="Medium risk" value={summary?.medium_risk_readings??0} cls="medium"/><Row name="High risk" value={summary?.high_risk_readings??0} cls="high"/></div>
