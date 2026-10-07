@@ -1,3 +1,4 @@
+import "./CommandCenterPrototype.css";
 import { useEffect, useState } from "react";
 import { Bell, Brain, CalendarClock, Cpu, Globe2, ShieldAlert, Sparkles } from "lucide-react";
 
