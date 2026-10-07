@@ -1,0 +1,22 @@
+# Copy to config.yaml on the edge computer.
+# Do not commit credentials or private network details.
+
+mqtt:
+  host: localhost
+  port: 1883
+  topic_prefix: factory
+  client_id: smart-factory-edge-m001
+  username: ""
+  password: ""
+
+machine:
+  machine_id: M-001
+
+# Normalized field -> PLC/SCADA tag name.
+# Replace these with the real read-only tags supplied by the machine/PLC.
+tags:
+  air_temperature: AirTemperature
+  process_temperature: ProcessTemperature
+  rotational_speed: RotationalSpeed
+  torque: Torque
+  tool_wear: ToolWear
