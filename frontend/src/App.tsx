@@ -10,7 +10,7 @@ import FactoryArchitecture from "./FactoryArchitecture";
 import Factory3D from "./Factory3D";
 import FutureIntelligence from "./FutureIntelligence";
 
-const API=String(import.meta.env.VITE_API_BASE_URL||"http://localhost:8000").replace(/\/$/,"");
+const API=String(import.meta.env.VITE_API_BASE_URL||"https://smart-factory-rag-api.onrender.com").replace(/\/$/,"");
 type Language = "auto" | "en" | "hi" | "hinglish";
 
 export default function App(){
