@@ -247,6 +247,7 @@ export default function App(){
     </>
    )}
   </section>
+  </section>
 
   <section id="alerts" className="stack-section stack-alerts">
    <div className="section-label"><span>04</span><ShieldCheck size={14}/> ALERTS & FACTORY HEALTH</div>
@@ -260,6 +261,7 @@ export default function App(){
   </section>
   <Suspense fallback={<div className={'status'}>Loading analytics...</div>}><Analytics summary={summary} history={history}/></Suspense>
   </section>
+  </section>
   <section id="intelligence" className="stack-section stack-intelligence">
    <div className="section-label"><span>06</span><BrainCircuit size={14}/> FUTURE INTELLIGENCE</div>
    <FutureIntelligence machineId={selectedMachineId} language={language === "auto" ? "hinglish" : language} question={question} assessment={assessment}/>
@@ -269,7 +271,6 @@ export default function App(){
    <FactoryArchitecture/>
    <Factory3D/>
   </section>
-  <Factory3D/>
   <footer className="command-footer"><span>SMART FACTORY RAG</span><span>Industrial AI Command Center · Live telemetry connected</span></footer>
  </div>
 }
