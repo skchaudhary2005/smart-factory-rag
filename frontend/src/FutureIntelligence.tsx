@@ -26,19 +26,22 @@ export default function FutureIntelligence({ machineId, language, question = "",
   const [action, setAction] = useState("Maintenance inspection");
   const [sim, setSim] = useState({ air_temperature: "", process_temperature: "", rotational_speed: "", torque: "", tool_wear: "" });
   const [simResult, setSimResult] = useState<any>(null);
+  const [schedules, setSchedules] = useState<any[]>([]);
+  const [actionMessage, setActionMessage] = useState("");
   const [simulating, setSimulating] = useState(false);
 
   useEffect(() => {
     if (!machineId) return;
     const load = async () => {
       try {
-        const [a, b, c, d, e, f] = await Promise.all([
+        const [a, b, c, d, e, f, g] = await Promise.all([
           fetch(API + "/future/anomalies/" + encodeURIComponent(machineId) + "?limit=100"),
           fetch(API + "/future/alerts"),
           fetch(API + "/future/digital-twin"),
           fetch(API + "/future/edge/status"),
           fetch(API + "/future/rul/live/" + encodeURIComponent(machineId)),
           fetch(API + "/future/model-registry"),
+          fetch(API + "/future/schedule/" + encodeURIComponent(machineId)),
         ]);
         if (a.ok) setAnomalies((await a.json()).anomalies || []);
         if (b.ok) setAlerts((await b.json()).alerts || []);
@@ -46,6 +49,7 @@ export default function FutureIntelligence({ machineId, language, question = "",
         if (d.ok) setEdge(await d.json());
         if (e.ok) setRul(await e.json());
         if (f.ok) setModels(await f.json());
+        if (g.ok) setSchedules((await g.json()).schedules || []);
       } catch {}
     };
     load();
@@ -70,7 +74,7 @@ export default function FutureIntelligence({ machineId, language, question = "",
         method: "POST", headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ machine_id: machineId, feedback, question, assessment_risk: assessment?.overall_risk || "UNKNOWN" })
       });
-      if (r.ok) { setSaved(t.save); setFeedback(""); }
+      if (r.ok) { setSaved(t.save); setFeedback(""); setActionMessage(""); } else { const data = await r.json().catch(() => ({})); setActionMessage(data.detail || "Feedback save failed (HTTP " + r.status + ")"); }
     } catch {}
   };
 
@@ -81,7 +85,7 @@ export default function FutureIntelligence({ machineId, language, question = "",
         method: "POST", headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ machine_id: machineId, priority, action, scheduled_for: new Date(date).toISOString() })
       });
-      if (r.ok) setSaved(t.scheduleBtn);
+      if (r.ok) { setSaved(t.scheduleBtn); setActionMessage(""); setSchedules(prev => [{ ...(await r.json().catch(() => ({}))), priority, action, scheduled_for: new Date(date).toISOString(), status: "PLANNED" }, ...prev].slice(0,20)); } else { const data = await r.json().catch(() => ({})); setActionMessage(data.detail || "Maintenance scheduling failed (HTTP " + r.status + ")"); }
     } catch {}
   };
 
@@ -106,7 +110,7 @@ export default function FutureIntelligence({ machineId, language, question = "",
       if (r.ok) setSimResult(data);
       else setSimResult({ error: data.detail || "Simulation failed (HTTP " + r.status + ")" });
     } catch {
-      setSimResult({ error: "Unable to reach simulation API" });
+      setSimResult({ error: "Unable to reach simulation API. Check the live API connection and try again." });
     } finally {
       setSimulating(false);
     }
@@ -139,18 +143,20 @@ export default function FutureIntelligence({ machineId, language, question = "",
       <div className="panel"><small>RUL & MODEL GOVERNANCE</small><h3>{rul?.available ? (Number(rul.predicted_rul_cycles).toFixed(1) + " cycles") : "Live RUL waiting for 21 sensors"}</h3><div className="status"><b>Champion</b><span>{models?.active?.failure || "rf-industrial-v1"}</span></div><div className="status"><b>Challengers</b><span>{(models?.candidate_models || []).join(", ")}</span></div></div>
       <div className="panel"><small><CalendarClock size={14}/> {t.schedule}</small>
         <div className="copilot-input"><select value={priority} onChange={e=>setPriority(e.target.value)}><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select><input value={action} onChange={e=>setAction(e.target.value)} placeholder="Action"/><input type="datetime-local" value={date} onChange={e=>setDate(e.target.value)}/><button type="button" onClick={schedule}>{t.scheduleBtn}</button></div>
+        {schedules.slice(0,3).map((x:any)=><div className="status" key={x.id || x.scheduled_for}><b>{x.priority} · {x.action}</b><span>{new Date(x.scheduled_for).toLocaleString()} · {x.status}</span></div>)}
       </div>
       <div className="panel"><small><Brain size={14}/> {t.feedback}</small>
         <div className="copilot-input"><input value={feedback} onChange={e=>setFeedback(e.target.value)} placeholder={t.feedbackPlaceholder}/><button type="button" onClick={saveFeedback}>{t.feedbackBtn}</button></div>
         {saved && <div className="status"><b>{saved}</b></div>}
+        {actionMessage && <div className="status"><b>Error</b><span>{actionMessage}</span></div>}
       </div>
     </div>
     <div className="panel" style={{marginTop:16}}>
       <small><Brain size={14}/> {t.twin} · {t.simulation}</small>
       <h3>{t.simulation}</h3>
       <div className="copilot-input" style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:8}}>
-        <input type="number" step="any" value={sim.air_temperature} onChange={e=>updateSim("air_temperature",e.target.value)} placeholder="Air °C"/>
-        <input type="number" step="any" value={sim.process_temperature} onChange={e=>updateSim("process_temperature",e.target.value)} placeholder="Process °C"/>
+        <input type="number" step="any" value={sim.air_temperature} onChange={e=>updateSim("air_temperature",e.target.value)} placeholder="Air K"/>
+        <input type="number" step="any" value={sim.process_temperature} onChange={e=>updateSim("process_temperature",e.target.value)} placeholder="Process K"/>
         <input type="number" step="any" value={sim.rotational_speed} onChange={e=>updateSim("rotational_speed",e.target.value)} placeholder="RPM"/>
         <input type="number" step="any" value={sim.torque} onChange={e=>updateSim("torque",e.target.value)} placeholder="Torque"/>
         <input type="number" step="any" value={sim.tool_wear} onChange={e=>updateSim("tool_wear",e.target.value)} placeholder="Tool wear"/>
@@ -160,7 +166,7 @@ export default function FutureIntelligence({ machineId, language, question = "",
       </div>
       {simResult && <div className="status" style={{marginTop:8}}>
         <b>{simResult.error ? "Simulation error" : (simResult.predicted_result?.prediction || simResult.predicted_result?.risk_level || "Simulation complete")}</b>
-        <span>{simResult.error || ("Failure probability: " + (simResult.predicted_result?.failure_probability != null ? (Number(simResult.predicted_result.failure_probability)*100).toFixed(2)+"%" : "--"))}</span>
+        <span>{simResult.error || ("Current risk: " + (twinMachine?.failure_probability != null ? (Number(twinMachine.failure_probability)*100).toFixed(2)+"%" : "--") + " → Simulated risk: " + (simResult.predicted_result?.failure_probability != null ? (Number(simResult.predicted_result.failure_probability)*100).toFixed(2)+"%" : "--"))}</span>
       </div>}
     </div>
   </section>;
