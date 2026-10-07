@@ -1,9 +1,8 @@
 """Smart Factory Edge Gateway.
 
-Default mode is a local simulator so the connector can be tested without a PLC.
-Real PLC/SCADA adapters should feed the same normalized mapping before MQTT publish.
+Supports simulator, Modbus TCP and OPC-UA read-only telemetry sources.
+The gateway normalizes data and publishes it to the existing MQTT contract.
 """
-
 from __future__ import annotations
 
 import argparse
@@ -14,6 +13,7 @@ from pathlib import Path
 from sensor_mapping import normalize
 from simulator import telemetry_stream
 
+
 def load_config(path: str) -> dict:
     try:
         import yaml
@@ -21,6 +21,7 @@ def load_config(path: str) -> dict:
         raise RuntimeError("PyYAML is required. Install edge_gateway/requirements.txt.") from exc
     with open(path, "r", encoding="utf-8") as handle:
         return yaml.safe_load(handle) or {}
+
 
 def build_publisher(config: dict):
     from mqtt_publisher import MQTTPublisher
@@ -34,6 +35,28 @@ def build_publisher(config: dict):
         password=mqtt_cfg.get("password", os.getenv("MQTT_PASSWORD", "")),
     )
 
+
+def build_reader(config: dict):
+    protocol = config.get("protocol", "simulator").lower()
+    if protocol == "modbus":
+        from modbus_client import ModbusTelemetryReader
+        cfg = config.get("modbus", {})
+        return ModbusTelemetryReader(
+            host=cfg["host"],
+            port=int(cfg.get("port", 502)),
+            unit_id=int(cfg.get("unit_id", 1)),
+            registers={k: int(v) for k, v in cfg["registers"].items()},
+            scale={k: float(v) for k, v in cfg.get("scale", {}).items()},
+        )
+    if protocol == "opcua":
+        from opcua_client import OPCUATelemetryReader
+        cfg = config.get("opcua", {})
+        return OPCUATelemetryReader(cfg["endpoint"], cfg["nodes"])
+    if protocol == "simulator":
+        return None
+    raise ValueError("protocol must be simulator, modbus, or opcua")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Smart Factory Edge Gateway")
     parser.add_argument("--mode", choices=("simulator", "mqtt"), default="simulator")
@@ -43,25 +66,46 @@ def main() -> None:
 
     config = load_config(args.config) if Path(args.config).exists() else {}
     machine_id = config.get("machine", {}).get("machine_id", "M-001")
+    protocol = config.get("protocol", "simulator").lower()
 
     publisher = None
+    reader = build_reader(config)
     if args.mode == "mqtt":
         publisher = build_publisher(config)
         publisher.connect()
 
+    if reader:
+        reader.connect()
+
     try:
-        for raw in telemetry_stream(machine_id, args.interval):
-            payload = normalize(machine_id, raw)
-            if publisher:
-                publisher.publish(machine_id, payload)
-                print("published:", json.dumps(payload), flush=True)
-            else:
-                print("simulated:", json.dumps(payload), flush=True)
+        if protocol == "simulator":
+            source = telemetry_stream(machine_id, args.interval)
+            for raw in source:
+                payload = normalize(machine_id, raw)
+                if publisher:
+                    publisher.publish(machine_id, payload)
+                    print("published:", json.dumps(payload), flush=True)
+                else:
+                    print("simulated:", json.dumps(payload), flush=True)
+        else:
+            while True:
+                raw = reader.read()
+                payload = normalize(machine_id, raw)
+                if publisher:
+                    publisher.publish(machine_id, payload)
+                    print("published:", json.dumps(payload), flush=True)
+                else:
+                    print("read-only:", json.dumps(payload), flush=True)
+                import time
+                time.sleep(args.interval)
     except KeyboardInterrupt:
         pass
     finally:
+        if reader:
+            reader.close()
         if publisher:
             publisher.close()
+
 
 if __name__ == "__main__":
     main()
