@@ -92,4 +92,9 @@ The project is designed as a deployed backend + frontend system and can also be 
 
 **Sumit Kumar**
 
+
+### 📬 Connect With Me
+- GitHub: [skchaudhary2005](https://github.com/skchaudhary2005)
+- LinkedIn: [Sumit Kumar](https://www.linkedin.com/in/sumit-chaudhary-41b306327/)
+
 ⭐ If you find this project useful, consider starring the repository.
