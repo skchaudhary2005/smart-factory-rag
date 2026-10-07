@@ -1,7 +1,7 @@
 import MachineMonitoring from "./MachineMonitoring";
 import SensorIntelligence from "./SensorIntelligence";
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { Activity, Cpu, Gauge, RefreshCw, ShieldCheck, Thermometer, Wrench } from "lucide-react";
+import { Activity, Cpu, Gauge, RefreshCw, ShieldCheck, Thermometer, Wrench, Radio, BrainCircuit, Network, Factory, ChevronDown } from "lucide-react";
 import "./App.css";
 const Analytics = lazy(() => import('./Analytics'));
 const TelemetryChart = lazy(() => import('./TelemetryChart'));
@@ -120,24 +120,48 @@ export default function App(){
   }
  };
 
- return <div className="app">
-  <header><div><div className="eyebrow">INDUSTRIAL AI PLATFORM</div><h1>Smart Factory Monitor</h1><p>Predictive maintenance & real-time machine intelligence</p></div><div style={{display:"flex",gap:8,alignItems:"center"}}><select aria-label="Machine" value={selectedMachineId} onChange={e=>setSelectedMachineId(e.target.value)}>{liveMachineOptions(machines).map((id:string)=><option key={id} value={id}>{id}</option>)}</select><select aria-label="AI language" value={language} onChange={e=>setLanguage(e.target.value as Language)}><option value="auto">Auto / Hinglish</option><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select><button onClick={load}><RefreshCw size={16}/> Refresh</button></div></header>
+ return <div className="app command-app">
+  <div className="ambient-grid" aria-hidden="true"></div>
+  <header className="command-header">
+   <div className="brand-block">
+    <div className="brand-mark"><Factory size={18}/></div>
+    <div><div className="eyebrow">INDUSTRIAL AI PLATFORM · LIVE</div><h1>Smart Factory RAG</h1><p>Predictive maintenance · machine intelligence · industrial copilot</p></div>
+   </div>
+   <nav className="command-nav" aria-label="Smart Factory sections">
+    <a href="#overview"><span>01</span>Overview</a><a href="#machine"><span>02</span>Machine</a><a href="#copilot"><span>03</span>AI Copilot</a><a href="#intelligence"><span>04</span>Future AI</a><a href="#architecture"><span>05</span>Architecture</a>
+   </nav>
+   <div className="header-controls">
+    <select aria-label="Machine" value={selectedMachineId} onChange={e=>setSelectedMachineId(e.target.value)}>{liveMachineOptions(machines).map((id:string)=><option key={id} value={id}>{id}</option>)}</select>
+    <select aria-label="AI language" value={language} onChange={e=>setLanguage(e.target.value as Language)}><option value="auto">Auto / Hinglish</option><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select>
+    <button onClick={load}><RefreshCw size={16}/> Refresh</button>
+   </div>
+  </header>
+  <div className="scroll-cue"><ChevronDown size={15}/><span>SCROLL TO EXPLORE</span></div>
   {error&&<div className="error">{error}</div>}
-  <section className="stats">
-   <Card icon={<Activity/>} title="Telemetry Readings" value={summary?.readings??0}/>
-   <Card icon={<Cpu/>} title="Active Machines" value={summary?.machines??0}/>
-   <Card icon={<Gauge/>} title="Avg Failure Risk" value={`${((summary?.avg_failure_probability??0)*100).toFixed(1)}%`}/>
-   <Card icon={<ShieldCheck/>} title="High Risk Events" value={summary?.high_risk_readings??0}/>
+  <section id="overview" className="stack-section stack-overview">
+   <div className="section-label"><span>01</span><Radio size={14}/> SYSTEM OVERVIEW</div>
+   <div className="section-intro"><div><small>FACTORY COMMAND CENTER</small><h2>Live Industrial Intelligence</h2></div><span>REAL-TIME DATA PIPELINE</span></div>
+   <section className="stats">
+    <Card icon={<Activity/>} title="Telemetry Readings" value={summary?.readings??0}/>
+    <Card icon={<Cpu/>} title="Active Machines" value={summary?.machines??0}/>
+    <Card icon={<Gauge/>} title="Avg Failure Risk" value={`${((summary?.avg_failure_probability??0)*100).toFixed(1)}%`}/>
+    <Card icon={<ShieldCheck/>} title="High Risk Events" value={summary?.high_risk_readings??0}/>
+   </section>
   </section>
-  <section className="grid">
+  <section id="machine" className="stack-section stack-machine">
+   <div className="section-label"><span>02</span><Activity size={14}/> LIVE MACHINE MONITORING</div>
+   <section className="grid">
    <div className="panel"><div className="head"><div><small>MACHINE</small><h2>{machine?.machine_id||"No machine"}</h2></div><span className={`badge ${(machine?.current_risk||"UNKNOWN").toLowerCase()}`}>{machine?.current_risk||"UNKNOWN"}</span></div>
     <div className="machine"><div><small>Prediction</small><b>{machine?.current_prediction||"N/A"}</b></div><div><small>Max Failure Risk</small><b>{((machine?.max_failure_probability||0)*100).toFixed(1)}%</b></div></div>
     <div className="metrics"><Metric icon={<Thermometer/>} name="Air" value={latest?.air_temperature?`${latest.air_temperature.toFixed(1)} K`:"--"}/><Metric icon={<Thermometer/>} name="Process" value={latest?.process_temperature?`${latest.process_temperature.toFixed(1)} K`:"--"}/><Metric icon={<Gauge/>} name="RPM" value={latest?.rotational_speed?.toFixed(0)||"--"}/><Metric icon={<Wrench/>} name="Torque" value={latest?.torque?`${latest.torque.toFixed(1)} Nm`:"--"}/></div>
    </div>
    <div className='panel chart'><div className='head'><div><small>LIVE TELEMETRY</small><h2>Failure Probability</h2></div><span className='live'>LIVE</span></div><Suspense fallback={<div className='status'>Loading chart...</div>}><TelemetryChart history={history}/></Suspense></div>
+   </section>
   </section>
 
-  <section className="panel" style={{marginTop:24}}>
+  <section id="copilot" className="stack-section stack-copilot">
+   <div className="section-label"><span>03</span><BrainCircuit size={14}/> AI MAINTENANCE COPILOT</div>
+  <section className="panel" style={{marginTop:0}}>
    <div className="head">
     <div>
    <MachineMonitoring machine={machine} latest={latest} />
@@ -224,17 +248,29 @@ export default function App(){
    )}
   </section>
 
-  <section className="panel alerts" style={{marginTop:24}}><div className="head"><div><small>ALERT CENTER</small><h2>Machine Alerts</h2></div><span className="system-status">LIVE MONITORING</span></div><div className="alert-list">{(summary?.high_risk_readings??0)>0?<div className="alert-item high"><span className="alert-dot"></span><div><b>High-risk machine condition detected</b><small>Immediate maintenance assessment recommended.</small></div><strong>{summary?.high_risk_readings}</strong></div>:(summary?.medium_risk_readings??0)>0?<div className="alert-item medium"><span className="alert-dot"></span><div><b>Medium-risk telemetry detected</b><small>Continue monitoring and schedule maintenance inspection.</small></div><strong>{summary?.medium_risk_readings}</strong></div>:<div className="alert-item clear"><span className="alert-dot"></span><div><b>No active alerts</b><small>Current telemetry is within the monitored risk thresholds.</small></div><strong>0</strong></div>}</div></section>
+  <section id="alerts" className="stack-section stack-alerts">
+   <div className="section-label"><span>04</span><ShieldCheck size={14}/> ALERTS & FACTORY HEALTH</div>
+  <section className="panel alerts" style={{marginTop:0}}><div className="head"><div><small>ALERT CENTER</small><h2>Machine Alerts</h2></div><span className="system-status">LIVE MONITORING</span></div><div className="alert-list">{(summary?.high_risk_readings??0)>0?<div className="alert-item high"><span className="alert-dot"></span><div><b>High-risk machine condition detected</b><small>Immediate maintenance assessment recommended.</small></div><strong>{summary?.high_risk_readings}</strong></div>:(summary?.medium_risk_readings??0)>0?<div className="alert-item medium"><span className="alert-dot"></span><div><b>Medium-risk telemetry detected</b><small>Continue monitoring and schedule maintenance inspection.</small></div><strong>{summary?.medium_risk_readings}</strong></div>:<div className="alert-item clear"><span className="alert-dot"></span><div><b>No active alerts</b><small>Current telemetry is within the monitored risk thresholds.</small></div><strong>0</strong></div>}</div></section>
 
+  <section className="panel analytics-shell" style={{marginTop:18}}>
+   <div className="section-label"><span>05</span><Gauge size={14}/> ANALYTICS & MODEL STATUS</div>
   <section className="grid lower">
    <div className="panel"><small>RISK DISTRIBUTION</small><h2>Factory Health</h2><Row name="Low risk" value={summary?.low_risk_readings??0} cls="low"/><Row name="Medium risk" value={summary?.medium_risk_readings??0} cls="medium"/><Row name="High risk" value={summary?.high_risk_readings??0} cls="high"/></div>
    <div className="panel"><small>PREDICTIVE MAINTENANCE</small><h2>AI Model Status</h2><Status name="Failure Model" value="RandomForest · rf-industrial-v1"/><Status name="RUL Model" value="RandomForest · rf-rul-v1"/><Status name="RAG Engine" value="FAISS + BM25 · Ready"/><Status name="Sensor Pipeline" value="MQTT → TimescaleDB · Live"/></div>
   </section>
   <Suspense fallback={<div className={'status'}>Loading analytics...</div>}><Analytics summary={summary} history={history}/></Suspense>
-  <FactoryArchitecture/>
+  </section>
+  <section id="intelligence" className="stack-section stack-intelligence">
+   <div className="section-label"><span>06</span><BrainCircuit size={14}/> FUTURE INTELLIGENCE</div>
+   <FutureIntelligence machineId={selectedMachineId} language={language === "auto" ? "hinglish" : language} question={question} assessment={assessment}/>
+  </section>
+  <section id="architecture" className="stack-section stack-architecture">
+   <div className="section-label"><span>07</span><Network size={14}/> INDUSTRIAL ARCHITECTURE</div>
+   <FactoryArchitecture/>
+   <Factory3D/>
+  </section>
   <Factory3D/>
-  <FutureIntelligence machineId={selectedMachineId} language={language === "auto" ? "hinglish" : language} question={question} assessment={assessment}/>
-  <footer>Smart Factory RAG · Industrial AI Monitoring</footer>
+  <footer className="command-footer"><span>SMART FACTORY RAG</span><span>Industrial AI Command Center · Live telemetry connected</span></footer>
  </div>
 }
 function Card({icon,title,value}:{icon:any,title:string,value:any}){return <div className="stat">{icon}<div><small>{title}</small><strong>{value}</strong></div></div>}
