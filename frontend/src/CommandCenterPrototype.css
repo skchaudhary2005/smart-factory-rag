@@ -1,0 +1,42 @@
+/* Smart Factory Command Center — reference-inspired presentation layer. */
+:root{--sf-neon:#65ff9f;--sf-panel:#030b07;--sf-border:rgba(101,255,159,.24);--sf-copy:#eafff1}
+.command-app{isolation:isolate;overflow:clip;background:radial-gradient(circle at 50% 8%,rgba(43,255,135,.08),transparent 32%),linear-gradient(180deg,#010402 0%,#020805 48%,#010402 100%)}
+.command-app::before{content:"";position:fixed;inset:-10%;z-index:-5;pointer-events:none;opacity:.42;background:linear-gradient(90deg,transparent 0 14%,rgba(101,255,159,.42) 14.05% 14.12%,transparent 14.18% 28%,rgba(101,255,159,.22) 28.05% 28.12%,transparent 28.18% 100%),linear-gradient(0deg,transparent 0 22%,rgba(101,255,159,.2) 22.05% 22.12%,transparent 22.18% 61%,rgba(101,255,159,.24) 61.05% 61.12%,transparent 61.18% 100%);background-size:640px 460px,760px 520px;mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 82%,transparent);animation:sfCircuitDrift 24s linear infinite}
+.command-app::after{content:"";position:fixed;inset:0;z-index:-4;pointer-events:none;background-image:radial-gradient(circle,rgba(101,255,159,.55) 0 1px,transparent 1.8px),radial-gradient(circle,rgba(101,255,159,.25) 0 1px,transparent 1.8px);background-size:180px 150px,270px 210px;background-position:20px 40px,110px 90px;opacity:.18;animation:sfParticleDrift 18s ease-in-out infinite alternate}
+@keyframes sfCircuitDrift{from{transform:translate3d(-2%,0,0)}to{transform:translate3d(2%,2%,0)}}
+@keyframes sfParticleDrift{from{transform:translate3d(0,0,0)}to{transform:translate3d(1.5%,1%,0)}}
+
+/* Fix the generic .machine collision with the 3D factory. */
+.stack-section .machine{position:relative;inset:auto;width:auto;height:auto;transform:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}
+.stack-section .machine div{min-width:0}
+.factory-floor .machine{position:absolute;inset:auto;width:125px;height:90px;transform-style:preserve-3d;display:block;margin:0;background:transparent;border:0;padding:0}
+.factory-floor .machine div{min-width:0;background:transparent;border:0;padding:0}
+
+.command-header{border-color:rgba(101,255,159,.28);background:rgba(1,8,4,.78);box-shadow:0 18px 60px rgba(0,0,0,.48),0 0 35px rgba(43,255,135,.045)}
+.command-header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--sf-neon),transparent);opacity:.42}
+.command-nav a{position:relative;overflow:hidden}
+.command-nav a::after{content:"";position:absolute;left:10%;right:10%;bottom:2px;height:1px;background:var(--sf-neon);transform:scaleX(0);transform-origin:center;transition:transform .25s ease;box-shadow:0 0 8px var(--sf-neon)}
+.command-nav a:hover::after{transform:scaleX(1)}
+
+.stack-section{max-width:1320px;margin-left:auto;margin-right:auto;padding:34px 28px 42px;border:1px solid rgba(101,255,159,.13);border-radius:18px;background:linear-gradient(180deg,rgba(2,10,6,.76),rgba(1,6,4,.88));box-shadow:0 35px 100px rgba(0,0,0,.34),inset 0 0 60px rgba(101,255,159,.018)}
+.stack-section::before,.stack-section::after{content:"";position:absolute;pointer-events:none;border:1px solid rgba(101,255,159,.12);border-radius:18px}
+.stack-section::before{inset:9px -9px -9px 9px;z-index:-2;background:rgba(2,9,5,.42)}
+.stack-section::after{inset:18px -18px -18px 18px;z-index:-3;background:rgba(2,8,5,.28)}
+.stack-overview{min-height:520px;display:flex;flex-direction:column;justify-content:center}
+.stack-machine,.stack-copilot,.stack-alerts,.stack-intelligence,.stack-architecture{scroll-margin-top:112px}
+.stack-section .section-label{color:#62c98d}.stack-section .section-label span{text-shadow:0 0 10px rgba(101,255,159,.55)}
+.section-intro h2{font-size:clamp(30px,4vw,56px);line-height:1.02;letter-spacing:-.035em;max-width:760px}
+.section-intro>span{border-color:rgba(101,255,159,.28);color:#70ce96;background:rgba(101,255,159,.025)}
+.stack-section .panel,.stack-section .stat{border-color:rgba(101,255,159,.17);background:rgba(2,11,7,.84)}
+.stack-section .panel{position:relative;overflow:hidden}
+.stack-section .panel::before{content:"";position:absolute;inset:8px;border:1px solid rgba(101,255,159,.055);border-radius:10px;pointer-events:none}
+.stack-section .panel::after{content:"";position:absolute;width:34px;height:34px;top:0;right:0;border-top:1px solid rgba(101,255,159,.38);border-right:1px solid rgba(101,255,159,.38);pointer-events:none}
+.stack-section .stat{min-height:118px;position:relative;overflow:hidden}
+.stack-section .stat strong{color:#edfff4;text-shadow:0 0 18px rgba(101,255,159,.09)}
+.stack-section .stat::after{content:"";position:absolute;top:0;right:0;width:22px;height:22px;border-top:1px solid rgba(101,255,159,.35);border-right:1px solid rgba(101,255,159,.35);border-radius:0 10px 0 0}
+.grid{align-items:stretch}.chart{overflow:hidden}.stack-copilot>.panel{min-height:0}.stack-intelligence>.panel{border-color:rgba(101,255,159,.24)}
+.scroll-cue{position:sticky;top:92px;z-index:20;width:max-content;margin:4px auto 20px;padding:7px 12px;border:1px solid rgba(101,255,159,.12);border-radius:999px;background:rgba(1,8,4,.58);backdrop-filter:blur(8px)}
+.command-footer{max-width:1320px;margin-left:auto;margin-right:auto}
+@media(max-width:900px){.stack-section{padding:26px 18px 32px}.stack-overview{min-height:460px}.stack-section::before{inset:7px -7px -7px 7px}.stack-section::after{inset:14px -14px -14px 14px}}
+@media(max-width:600px){.stack-section{padding:22px 12px 26px;border-radius:14px}.stack-section::before,.stack-section::after{border-radius:14px}.section-intro h2{font-size:28px}.stack-section .machine{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.command-app::before,.command-app::after{animation:none}}
