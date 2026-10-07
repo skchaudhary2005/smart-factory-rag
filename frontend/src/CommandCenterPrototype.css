@@ -214,3 +214,174 @@
 @media(prefers-reduced-motion:reduce){
   .stack-section .stat,.stack-section .grid>.panel:nth-child(2){transition:none}
 }
+
+
+/* V4 — polished industrial product treatment */
+.command-header{
+  min-height:72px;
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(101,255,159,.14);
+}
+.brand-block h1{letter-spacing:-.035em}
+.brand-block p{opacity:.62}
+.command-nav{gap:4px}
+.command-nav a{
+  padding:9px 10px;
+  border-radius:7px;
+  color:rgba(231,255,240,.62);
+  transition:background .2s ease,color .2s ease;
+}
+.command-nav a:hover{background:rgba(101,255,159,.055);color:#effff5}
+.command-nav a span{opacity:.42;font-size:9px}
+
+.stack-section{
+  border-radius:12px;
+  background:
+    linear-gradient(135deg,rgba(5,18,11,.94),rgba(2,8,5,.96) 55%,rgba(3,13,8,.94));
+  border-color:rgba(101,255,159,.16);
+  box-shadow:
+    0 28px 90px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.025),
+    inset 0 0 70px rgba(101,255,159,.018);
+}
+.stack-section::before{
+  border-radius:12px;
+  border-color:rgba(101,255,159,.09);
+}
+.stack-section::after{
+  border-radius:12px;
+  border-color:rgba(101,255,159,.045);
+}
+.stack-overview{
+  min-height:calc(100vh - 130px) !important;
+  padding-top:70px;
+}
+.stack-overview .section-intro{
+  max-width:1080px;
+  position:relative;
+}
+.stack-overview .section-intro h2{
+  font-size:clamp(42px,5.2vw,76px);
+  max-width:900px;
+  letter-spacing:-.055em;
+}
+.stack-overview .section-intro small{
+  color:#69db9a;
+  letter-spacing:.2em;
+}
+.stack-overview .section-intro>span{
+  position:absolute;
+  right:0;
+  bottom:8px;
+}
+.stack-overview .stats{
+  margin-top:34px;
+}
+.stack-overview .stat{
+  border-radius:10px;
+  background:linear-gradient(180deg,rgba(6,22,14,.88),rgba(2,10,6,.92));
+}
+.stack-overview .stat:nth-child(2){transform:translateY(12px)}
+.stack-overview .stat:nth-child(3){transform:translateY(24px)}
+.stack-overview .stat:nth-child(4){transform:translateY(36px)}
+
+.stack-section .panel{
+  border-radius:10px;
+  background:linear-gradient(180deg,rgba(5,17,11,.9),rgba(2,9,6,.94));
+  border-color:rgba(101,255,159,.14);
+}
+.stack-section .panel .head{
+  border-bottom:1px solid rgba(101,255,159,.08);
+  padding-bottom:14px;
+}
+.stack-section .panel h2{letter-spacing:-.025em}
+.stack-section .system-status,
+.stack-section .live{
+  letter-spacing:.12em;
+  font-size:9px;
+}
+.stack-section .metrics{
+  gap:10px;
+}
+.stack-section .metrics>div{
+  border-radius:8px;
+  background:rgba(101,255,159,.025);
+  border-color:rgba(101,255,159,.09);
+}
+.stack-section .status{
+  background:rgba(101,255,159,.018);
+}
+.stack-section .badge{
+  border-radius:999px;
+  padding:5px 9px;
+}
+
+.stack-telemetry .section-intro,
+.stack-copilot .section-intro,
+.stack-alerts .section-intro,
+.stack-intelligence .section-intro{
+  display:block;
+}
+.telemetry-panel{min-height:560px !important}
+.telemetry-panel .recharts-responsive-container{min-height:430px}
+
+.copilot-context{
+  align-items:stretch;
+}
+.copilot-context .panel{
+  min-height:255px;
+}
+.stack-copilot>.panel{
+  background:linear-gradient(180deg,rgba(4,16,10,.94),rgba(1,8,5,.97));
+}
+.stack-copilot .copilot-input{
+  border-color:rgba(101,255,159,.14);
+  background:rgba(0,5,3,.7);
+}
+.stack-copilot .assistant-prompts button{
+  border-radius:6px;
+}
+.stack-copilot .rag-result{
+  border-radius:9px;
+  border-color:rgba(101,255,159,.18);
+}
+
+.stack-alerts .alert-item{
+  border-radius:8px;
+}
+.analytics-shell{
+  background:linear-gradient(180deg,rgba(3,13,8,.9),rgba(1,7,4,.95));
+}
+
+.stack-intelligence{
+  background:
+    radial-gradient(circle at 85% 10%,rgba(101,255,159,.045),transparent 30%),
+    linear-gradient(135deg,rgba(4,16,10,.96),rgba(1,8,5,.98));
+}
+
+.stack-architecture{
+  background:
+    radial-gradient(circle at 50% 20%,rgba(101,255,159,.035),transparent 38%),
+    linear-gradient(180deg,rgba(3,13,8,.96),rgba(1,7,4,.98));
+}
+
+.command-footer{
+  opacity:.72;
+  font-size:11px;
+  letter-spacing:.08em;
+}
+
+@media(max-width:1100px){
+  .command-nav a{padding:8px 6px;font-size:10px}
+}
+@media(max-width:800px){
+  .stack-overview{
+    min-height:0 !important;
+    padding-top:44px;
+  }
+  .stack-overview .section-intro>span{display:none}
+  .stack-overview .stat:nth-child(2),
+  .stack-overview .stat:nth-child(3),
+  .stack-overview .stat:nth-child(4){transform:none}
+  .stack-overview .stats{margin-top:18px}
+}
