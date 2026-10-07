@@ -50,3 +50,27 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-3;bac
 @media(max-width:900px){.command-app{padding:16px 14px 45px}.command-header{top:8px;grid-template-columns:1fr}.command-nav{grid-column:1;overflow-x:auto;justify-content:flex-start}.header-controls{grid-column:1;justify-content:flex-start;flex-wrap:wrap}.stack-section{margin-bottom:9vh}.section-intro{align-items:flex-start;flex-direction:column}.section-intro h2{font-size:24px}.stack-copilot>.panel{min-height:0}}
 @media(max-width:600px){.brand-block h1{font-size:20px}.brand-block p{font-size:10px}.command-nav a{font-size:9px;padding:8px 7px;white-space:nowrap}.command-nav a span{display:none}.header-controls{display:grid;grid-template-columns:1fr 1fr}.header-controls button{justify-content:center}.scroll-cue{margin-top:0}.stack-section{margin-bottom:7vh}.section-label{font-size:9px;letter-spacing:1.4px}.section-intro h2{font-size:21px}.command-footer{flex-direction:column;text-align:center}.stack-section .panel{backdrop-filter:blur(7px)}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.command-nav a,.stat,button{transition:none}}
+
+/* Verified command-center stacking behavior:
+   each major section pins beneath the fixed command header while the next
+   section scrolls over it, creating the requested screen/stack transition. */
+@media (min-width: 901px) {
+  .stack-section {
+    position: sticky;
+    top: 108px;
+    z-index: 1;
+    margin-bottom: 18vh;
+    scroll-margin-top: 108px;
+  }
+  .stack-overview { z-index: 10; }
+  .stack-machine { z-index: 20; }
+  .stack-copilot { z-index: 30; }
+  .stack-alerts { z-index: 40; }
+  .stack-intelligence { z-index: 50; }
+  .stack-architecture { z-index: 60; }
+  .stack-section > .panel,
+  .stack-section > .grid,
+  .stack-section > .stats {
+    position: relative;
+  }
+}
