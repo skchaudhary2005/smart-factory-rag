@@ -74,3 +74,15 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-3;bac
     position: relative;
   }
 }
+
+/* Motion layer: animated technical grid + scanline, while preserving readability. */
+.ambient-grid{animation:sfGridDrift 18s linear infinite}
+.ambient-grid:after{content:"";position:absolute;left:0;right:0;top:-12%;height:18%;background:linear-gradient(180deg,transparent,rgba(112,246,173,.055),transparent);filter:blur(3px);animation:sfScanline 9s linear infinite}
+@keyframes sfGridDrift{from{background-position:0 0}to{background-position:52px 52px}}
+@keyframes sfScanline{from{transform:translateY(-10vh);opacity:0}15%{opacity:1}85%{opacity:1}to{transform:translateY(115vh);opacity:0}}
+@media (min-width:901px){
+  .stack-section{scroll-snap-align:start}
+}
+@media (prefers-reduced-motion:reduce){
+  .ambient-grid,.ambient-grid:after{animation:none}
+}
