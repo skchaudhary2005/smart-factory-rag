@@ -385,3 +385,378 @@
   .stack-overview .stat:nth-child(4){transform:none}
   .stack-overview .stats{margin-top:18px}
 }
+
+
+/* ============================================================
+   COMMAND CENTER V5 — CINEMATIC INDUSTRIAL PRODUCT EXPERIENCE
+   Presentation-only layer. Existing data, APIs and workflows stay intact.
+   ============================================================ */
+
+:root{
+  --cc-green:#72ffad;
+  --cc-green-dim:#3da56d;
+  --cc-black:#020604;
+  --cc-panel:rgba(5,14,9,.88);
+  --cc-line:rgba(114,255,173,.18);
+}
+
+.command-app{
+  max-width:none!important;
+  padding:0 0 70px!important;
+  background:
+    radial-gradient(ellipse at 50% -10%,rgba(63,255,139,.075),transparent 42%),
+    #020604;
+}
+
+/* Persistent technical field */
+.command-app::before{
+  opacity:.32!important;
+  background-size:760px 520px,620px 460px,360px 280px,520px 400px,640px 480px!important;
+  mask-image:linear-gradient(to bottom,transparent,#000 7%,#000 94%,transparent)!important;
+}
+.command-app::after{opacity:.12!important}
+
+/* Header becomes a true command bar, not a dashboard card */
+.command-header{
+  left:0!important;
+  right:0!important;
+  width:100%!important;
+  margin:0!important;
+  padding:14px 34px!important;
+  border-radius:0!important;
+  border-left:0!important;
+  border-right:0!important;
+  border-top:0!important;
+  background:rgba(1,6,3,.78)!important;
+  backdrop-filter:blur(22px)!important;
+  box-shadow:0 18px 60px rgba(0,0,0,.48)!important;
+}
+.brand-block{min-width:285px}
+.brand-mark{
+  width:42px!important;height:42px!important;
+  border-radius:10px!important;
+  background:rgba(114,255,173,.05)!important;
+  border:1px solid rgba(114,255,173,.3)!important;
+  box-shadow:0 0 25px rgba(114,255,173,.07),inset 0 0 18px rgba(114,255,173,.04)!important;
+}
+.brand-block h1{
+  font-size:19px!important;
+  text-transform:uppercase;
+  letter-spacing:.08em!important;
+}
+.brand-block p{font-size:9px!important;letter-spacing:.13em;text-transform:uppercase}
+.command-nav{justify-content:center;gap:2px!important}
+.command-nav a{
+  border-radius:4px!important;
+  border:1px solid transparent!important;
+  padding:8px 9px!important;
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace!important;
+  font-size:10px!important;
+  letter-spacing:.03em!important;
+}
+.command-nav a:hover{background:rgba(114,255,173,.06)!important;border-color:rgba(114,255,173,.16)!important}
+.header-controls select,.header-controls button{
+  border-radius:4px!important;
+  background:rgba(0,8,4,.8)!important;
+  border-color:rgba(114,255,173,.18)!important;
+}
+
+/* Remove the "scroll cue pill" — it reads like a template */
+.scroll-cue{display:none!important}
+
+/* Sections are cinematic scenes, not repeated dashboard cards */
+.stack-section{
+  width:min(1380px,calc(100vw - 72px))!important;
+  max-width:none!important;
+  margin:0 auto 180px!important;
+  padding:82px 70px 88px!important;
+  border-radius:0!important;
+  border:0!important;
+  border-left:1px solid rgba(114,255,173,.13)!important;
+  background:
+    linear-gradient(100deg,rgba(3,12,7,.96),rgba(2,7,4,.91) 58%,rgba(3,11,7,.72))!important;
+  box-shadow:0 45px 120px rgba(0,0,0,.55)!important;
+  isolation:isolate;
+}
+.stack-section::before{
+  inset:14px -28px -14px 28px!important;
+  border-radius:0!important;
+  border:1px solid rgba(114,255,173,.12)!important;
+  background:rgba(3,12,7,.38)!important;
+  transform:skewY(-.45deg);
+}
+.stack-section::after{
+  inset:28px -56px -28px 56px!important;
+  border-radius:0!important;
+  border:1px solid rgba(114,255,173,.055)!important;
+  background:rgba(2,8,5,.24)!important;
+  transform:skewY(-.8deg);
+}
+
+/* Alternating composition prevents the "same dashboard repeated" feeling */
+.stack-section:nth-of-type(even){transform:translateX(18px)}
+.stack-section:nth-of-type(odd){transform:translateX(-10px)}
+.stack-section:nth-of-type(even)::before{transform:skewY(.45deg)}
+.stack-section:nth-of-type(even)::after{transform:skewY(.8deg)}
+
+.stack-section .section-label{
+  margin:0 0 30px!important;
+  color:rgba(114,255,173,.72)!important;
+  font:700 10px/1 ui-monospace,SFMono-Regular,Consolas,monospace!important;
+  letter-spacing:.2em!important;
+}
+.stack-section .section-label span{
+  color:var(--cc-green)!important;
+  font-size:9px!important;
+  padding-right:8px;
+}
+.stack-section .section-label::after{
+  max-width:520px!important;
+  background:linear-gradient(90deg,rgba(114,255,173,.32),transparent)!important;
+}
+
+.section-intro{
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:space-between!important;
+  gap:30px!important;
+  margin-bottom:48px!important;
+}
+.section-intro small{
+  color:rgba(114,255,173,.62)!important;
+  font:700 10px/1 ui-monospace,SFMono-Regular,Consolas,monospace!important;
+  letter-spacing:.2em!important;
+}
+.section-intro h2{
+  font-size:clamp(40px,5vw,78px)!important;
+  line-height:.94!important;
+  letter-spacing:-.06em!important;
+  font-weight:650!important;
+  max-width:900px!important;
+  margin:14px 0 0!important;
+}
+.section-intro>span{
+  font:700 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace!important;
+  letter-spacing:.18em!important;
+  color:var(--cc-green)!important;
+  border:0!important;
+  border-left:1px solid var(--cc-green-dim)!important;
+  border-radius:0!important;
+  padding:8px 0 8px 14px!important;
+  background:transparent!important;
+}
+
+/* Overview = product hero, not four KPI tiles */
+.stack-overview{
+  min-height:calc(100vh - 90px)!important;
+  padding-top:110px!important;
+  display:flex!important;
+  justify-content:center!important;
+}
+.stack-overview .section-intro{
+  position:relative;
+  min-height:310px;
+  align-items:flex-start!important;
+}
+.stack-overview .section-intro h2{
+  max-width:780px!important;
+  font-size:clamp(58px,7vw,108px)!important;
+  text-transform:uppercase;
+}
+.stack-overview .section-intro h2::after{
+  content:"INDUSTRIAL AI COMMAND CENTER";
+  display:block;
+  margin-top:26px;
+  font-size:11px;
+  line-height:1;
+  letter-spacing:.35em;
+  color:rgba(114,255,173,.62);
+}
+.stack-overview .section-intro>span{
+  position:absolute!important;
+  right:0;top:8px;
+}
+.stack-overview .stats{
+  position:relative;
+  width:92%;
+  margin-left:auto!important;
+  display:grid!important;
+  grid-template-columns:1.15fr .9fr .9fr 1.15fr!important;
+  gap:0!important;
+}
+.stack-overview .stat{
+  min-height:150px!important;
+  border-radius:0!important;
+  border:1px solid rgba(114,255,173,.14)!important;
+  border-right:0!important;
+  background:rgba(3,12,7,.72)!important;
+  padding:26px!important;
+}
+.stack-overview .stat:last-child{border-right:1px solid rgba(114,255,173,.14)!important}
+.stack-overview .stat:nth-child(1){transform:translateY(0)!important}
+.stack-overview .stat:nth-child(2){transform:translateY(24px)!important}
+.stack-overview .stat:nth-child(3){transform:translateY(48px)!important}
+.stack-overview .stat:nth-child(4){transform:translateY(72px)!important}
+.stack-overview .stat svg{color:var(--cc-green)!important}
+.stack-overview .stat strong{font-size:36px!important}
+
+/* Internal panels stop looking like generic rounded SaaS cards */
+.stack-section .panel,
+.stack-section .stat{
+  border-radius:2px!important;
+  box-shadow:none!important;
+}
+.stack-section .panel{
+  background:rgba(2,9,5,.74)!important;
+  border:1px solid rgba(114,255,173,.13)!important;
+}
+.stack-section .panel::before{
+  inset:0!important;
+  border:0!important;
+  border-left:2px solid rgba(114,255,173,.28)!important;
+  border-radius:0!important;
+}
+.stack-section .panel::after{
+  width:26px!important;height:26px!important;
+  border-radius:0!important;
+  border-color:rgba(114,255,173,.48)!important;
+}
+.stack-section .panel .head{
+  padding:22px 24px!important;
+  border-bottom:1px solid rgba(114,255,173,.09)!important;
+}
+.stack-section .panel .head h2{font-size:18px!important}
+.stack-section .metrics>div,
+.stack-section .status{
+  border-radius:0!important;
+}
+
+/* Machine scene: large primary asset card + offset condition card */
+.stack-machine>.grid{
+  grid-template-columns:minmax(0,1.65fr) minmax(320px,.72fr)!important;
+  gap:28px!important;
+}
+.stack-machine>.grid>.panel:first-child{
+  min-height:430px;
+  padding:0!important;
+}
+.stack-machine>.grid>.panel:nth-child(2){
+  transform:translateY(70px)!important;
+  min-height:330px;
+}
+.stack-machine .machine{
+  margin:0!important;
+  padding:26px!important;
+}
+.stack-machine .metrics{
+  margin:0 24px 24px!important;
+}
+.stack-machine .metrics>div{
+  min-height:110px;
+  background:rgba(114,255,173,.025)!important;
+}
+
+/* Telemetry becomes a cinematic chart wall */
+.stack-telemetry{
+  padding-top:100px!important;
+}
+.telemetry-panel{
+  min-height:650px!important;
+  padding:0!important;
+  border-left:2px solid rgba(114,255,173,.35)!important;
+}
+.telemetry-panel .recharts-responsive-container{min-height:520px!important}
+.telemetry-panel .head{padding:26px 30px!important}
+.stack-telemetry .section-intro h2{max-width:650px}
+
+/* Copilot = one large AI workstation, not a pile of cards */
+.stack-copilot>.panel{
+  padding:0!important;
+  min-height:680px;
+}
+.stack-copilot>.panel>.head{padding:28px 32px!important}
+.copilot-context{
+  grid-template-columns:1.05fr .95fr!important;
+  gap:0!important;
+  margin:0!important;
+  border-top:1px solid rgba(114,255,173,.08);
+}
+.copilot-context .panel{
+  min-height:260px!important;
+  border:0!important;
+  border-right:1px solid rgba(114,255,173,.09)!important;
+}
+.copilot-context .machine-monitoring,
+.copilot-context .sensor-intelligence{transform:none!important}
+.stack-copilot .assistant-prompts,
+.stack-copilot .copilot-input,
+.stack-copilot .rag-result,
+.stack-copilot>.panel>.status,
+.stack-copilot>.panel>.machine{
+  margin-left:32px!important;margin-right:32px!important;
+}
+.stack-copilot .copilot-input{border-radius:0!important}
+
+/* Alerts + analytics read like a command wall */
+.stack-alerts>.alerts{padding-bottom:26px!important}
+.stack-alerts .analytics-shell{
+  margin-top:54px!important;
+  padding:0!important;
+  border-left:2px solid rgba(114,255,173,.25)!important;
+}
+.stack-alerts .analytics-shell>.section-label{padding:26px 30px 0}
+.stack-alerts .analytics-shell>.lower{
+  padding:0 30px 24px;
+}
+
+/* Future intelligence and architecture get more breathing room */
+.stack-intelligence{min-height:760px!important}
+.stack-architecture{min-height:760px!important}
+.stack-architecture .factory-scene{min-height:560px!important}
+
+/* Technical corner markers on scene boundaries */
+.stack-section .section-label::before{
+  content:"";
+  display:block!important;
+  width:28px!important;
+  height:10px!important;
+  border-left:1px solid var(--cc-green);
+  border-top:1px solid var(--cc-green);
+}
+
+/* Footer */
+.command-footer{
+  width:min(1380px,calc(100vw - 72px))!important;
+  margin:0 auto!important;
+  padding:28px 0!important;
+  border-top:1px solid rgba(114,255,173,.12)!important;
+}
+
+/* Desktop only; preserve usable mobile flow */
+@media(max-width:1000px){
+  .command-header{padding:12px 18px!important}
+  .command-nav{display:none}
+  .stack-section{
+    width:calc(100vw - 28px)!important;
+    margin-bottom:100px!important;
+    padding:58px 28px 64px!important;
+    transform:none!important;
+  }
+  .stack-section::before,.stack-section::after{display:none}
+  .stack-overview .section-intro h2{font-size:clamp(46px,9vw,78px)!important}
+  .stack-overview .stats{width:100%}
+}
+@media(max-width:700px){
+  .stack-section{padding:44px 18px 48px!important}
+  .section-intro{display:block!important}
+  .section-intro h2{font-size:40px!important}
+  .stack-overview .stats{grid-template-columns:1fr!important}
+  .stack-overview .stat,
+  .stack-overview .stat:nth-child(2),
+  .stack-overview .stat:nth-child(3),
+  .stack-overview .stat:nth-child(4){transform:none!important;border-right:1px solid rgba(114,255,173,.14)!important}
+  .stack-machine>.grid{grid-template-columns:1fr!important}
+  .stack-machine>.grid>.panel:nth-child(2){transform:none!important}
+  .copilot-context{grid-template-columns:1fr!important}
+  .copilot-context .panel{border-right:0!important;border-bottom:1px solid rgba(114,255,173,.09)!important}
+}
