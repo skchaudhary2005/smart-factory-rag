@@ -85,7 +85,14 @@ export default function FutureIntelligence({ machineId, language, question = "",
         method: "POST", headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ machine_id: machineId, priority, action, scheduled_for: new Date(date).toISOString() })
       });
-      if (r.ok) { setSaved(t.scheduleBtn); setActionMessage(""); setSchedules(prev => [{ ...(await r.json().catch(() => ({}))), priority, action, scheduled_for: new Date(date).toISOString(), status: "PLANNED" }, ...prev].slice(0,20)); } else { const data = await r.json().catch(() => ({})); setActionMessage(data.detail || "Maintenance scheduling failed (HTTP " + r.status + ")"); }
+      const data = await r.json().catch(() => ({}));
+      if (r.ok) {
+        setSaved(t.scheduleBtn);
+        setActionMessage("");
+        setSchedules(prev => [{ ...data, priority, action, scheduled_for: new Date(date).toISOString(), status: "PLANNED" }, ...prev].slice(0,20));
+      } else {
+        setActionMessage(data.detail || "Maintenance scheduling failed (HTTP " + r.status + ")");
+      }
     } catch {}
   };
 
