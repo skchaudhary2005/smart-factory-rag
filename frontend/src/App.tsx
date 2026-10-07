@@ -3,6 +3,7 @@ import SensorIntelligence from "./SensorIntelligence";
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Activity, Cpu, Gauge, RefreshCw, ShieldCheck, Thermometer, Wrench, Radio, BrainCircuit, Network, Factory, ChevronDown } from "lucide-react";
 import "./App.css";
+import "./CommandCenterPrototype.css";
 const Analytics = lazy(() => import('./Analytics'));
 const TelemetryChart = lazy(() => import('./TelemetryChart'));
 import FactoryArchitecture from "./FactoryArchitecture";
