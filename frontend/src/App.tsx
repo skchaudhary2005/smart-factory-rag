@@ -179,18 +179,18 @@ export default function App(){
   </section>
 
   <section id="copilot" className="stack-section stack-copilot">
-   <div className="section-label"><span>03</span><BrainCircuit size={14}/> AI MAINTENANCE COPILOT</div>
+   <div className="section-label"><span>04</span><BrainCircuit size={14}/> AI MAINTENANCE COPILOT</div>
   <section className="panel" style={{marginTop:0}}>
    <div className="head">
     <div>
-   <MachineMonitoring machine={machine} latest={latest} />
-   <SensorIntelligence history={history} latest={latest} />
      <small>AI MAINTENANCE COPILOT</small>
      <h2>Maintenance Assessment</h2>
     </div>
-
-    
-     <button type="button" onClick={runAssessment} disabled={assessing}>{assessing?"Assessing...":"Run Assessment"}</button>
+    <button type="button" onClick={runAssessment} disabled={assessing}>{assessing?"Assessing...":"Run Assessment"}</button>
+   </div>
+   <div className="copilot-context">
+    <MachineMonitoring machine={machine} latest={latest} />
+    <SensorIntelligence history={history} latest={latest} />
    </div>
 
    <div className="assistant-prompts"><small>AI ASSISTANT</small><div><button type="button" onClick={()=>setQuestion("Why is this machine considered low risk?")}>Why is this machine low risk?</button><button type="button" onClick={()=>setQuestion("What maintenance checks are relevant?")}>Maintenance checks</button><button type="button" onClick={()=>setQuestion("Which sensor values should I monitor?")}>Sensor guidance</button></div></div>
@@ -269,11 +269,11 @@ export default function App(){
   </section>
 
   <section id="alerts" className="stack-section stack-alerts">
-   <div className="section-label"><span>04</span><ShieldCheck size={14}/> ALERTS & FACTORY HEALTH</div>
+   <div className="section-label"><span>05</span><ShieldCheck size={14}/> ALERTS & FACTORY HEALTH</div>
   <section className="panel alerts" style={{marginTop:0}}><div className="head"><div><small>ALERT CENTER</small><h2>Machine Alerts</h2></div><span className="system-status">LIVE MONITORING</span></div><div className="alert-list">{(summary?.high_risk_readings??0)>0?<div className="alert-item high"><span className="alert-dot"></span><div><b>High-risk machine condition detected</b><small>Immediate maintenance assessment recommended.</small></div><strong>{summary?.high_risk_readings}</strong></div>:(summary?.medium_risk_readings??0)>0?<div className="alert-item medium"><span className="alert-dot"></span><div><b>Medium-risk telemetry detected</b><small>Continue monitoring and schedule maintenance inspection.</small></div><strong>{summary?.medium_risk_readings}</strong></div>:<div className="alert-item clear"><span className="alert-dot"></span><div><b>No active alerts</b><small>Current telemetry is within the monitored risk thresholds.</small></div><strong>0</strong></div>}</div></section>
 
   <section id="analytics" className="panel analytics-shell" style={{marginTop:18}}>
-   <div className="section-label"><span>05</span><Gauge size={14}/> ANALYTICS & MODEL STATUS</div>
+   <div className="section-label"><span>06</span><Gauge size={14}/> ANALYTICS & MODEL STATUS</div>
   <section className="grid lower">
    <div className="panel"><small>RISK DISTRIBUTION</small><h2>Factory Health</h2><Row name="Low risk" value={summary?.low_risk_readings??0} cls="low"/><Row name="Medium risk" value={summary?.medium_risk_readings??0} cls="medium"/><Row name="High risk" value={summary?.high_risk_readings??0} cls="high"/></div>
    <div className="panel"><small>PREDICTIVE MAINTENANCE</small><h2>AI Model Status</h2><Status name="Failure Model" value="RandomForest · rf-industrial-v1"/><Status name="RUL Model" value="RandomForest · rf-rul-v1"/><Status name="RAG Engine" value="FAISS + BM25 · Ready"/><Status name="Sensor Pipeline" value="MQTT → TimescaleDB · Live"/></div>
@@ -282,11 +282,11 @@ export default function App(){
   </section>
   </section>
   <section id="intelligence" className="stack-section stack-intelligence">
-   <div className="section-label"><span>05</span><BrainCircuit size={14}/> FUTURE INTELLIGENCE</div>
+   <div className="section-label"><span>08</span><BrainCircuit size={14}/> FUTURE INTELLIGENCE</div>
    <FutureIntelligence machineId={selectedMachineId} language={language === "auto" ? "hinglish" : language} question={question} assessment={assessment}/>
   </section>
   <section id="architecture" className="stack-section stack-architecture">
-   <div className="section-label"><span>06</span><Network size={14}/> INDUSTRIAL ARCHITECTURE</div>
+   <div className="section-label"><span>09</span><Network size={14}/> INDUSTRIAL ARCHITECTURE</div>
    <FactoryArchitecture/>
    <Factory3D/>
   </section>
